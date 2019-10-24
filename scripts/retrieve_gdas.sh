@@ -4,6 +4,9 @@ HH=$1     # forecast starting hour
 NN=$2     # Number of ensember members
 
 DATE=20190520
+WRKDIR=/scratch/ywang/EPIC/GDAS
+
+cd $WRKDIR
 
 if [[ "${HH}" < "18" ]]; then
   DATE=$(date -d "$DATE 1 day" +%Y%m%d)

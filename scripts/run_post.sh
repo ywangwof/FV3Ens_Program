@@ -36,11 +36,12 @@ esac
 #
 #-----------------------------------------------------------------------
 #
-RUNDIR=$1      # $eventdir
-casedate=$2
+RUNDIR=${1-/scratch/ywang/EPIC/test_runs}      # $eventdir
+casedate=${2-2019052018}
 
-numens=${3-4}
-sfhr=${4-0}
+numens=${3-40}
+nummns="10"      # forecast output interval in minutes
+fcstmn="360"     # forecast length in minutes
 
 nodes1="1"
 numprocess="6"
@@ -59,18 +60,24 @@ platppn=$((numprocess/nodes1))
 CDATE=${casedate:0:8}
 CHH=${casedate:8:2}
 
-for hr in $(seq $sfhr 1 6); do
+for mn in $(seq 0 $nummns $fcstmn); do
 
-  fhr=$(printf "%03d" $hr)
+  fcsthr=$((mn/60))
+  fcstmn=$((mn%60))
+
+  fhr=$(printf "%03d" $fcsthr)
+  fmn=$(printf "%02d" $fcstmn)
+
+  flen=$(printf "%03d" $mn)
 
   for mid in $(seq 1 $numens); do
     memid=$(printf "%03d" $mid)
-    memdir="$RUNDIR/mem_$memid"
+    memdir="$RUNDIR/$casedate/mem_$memid"
 
     POSTPRD_DIR="$memdir/postprd"
 
-    dyn_file=${memdir}/dynf${fhr}.nc
-    phy_file=${memdir}/phyf${fhr}.nc
+    dyn_file="${memdir}/dynf${fhr}:${fmn}:00.nc"
+    phy_file="${memdir}/phyf${fhr}:${fmn}:00.nc"
 
     wtime=0
     while [[ ! -f ${dyn_file} ]]; do
@@ -85,7 +92,7 @@ for hr in $(seq $sfhr 1 6); do
       echo "Waiting ($wtime seconds) for ${phy_file}"
     done
 
-    FHR_DIR="${POSTPRD_DIR}/$fhr"
+    FHR_DIR="${POSTPRD_DIR}/$flen"
     if [[ ! -r ${FHR_DIR} ]]; then
       mkdir -p ${FHR_DIR}
     fi
@@ -99,9 +106,9 @@ for hr in $(seq $sfhr 1 6); do
 # ble.
 #
 #-----------------------------------------------------------------------
-    vhr=$((hr+CHH))
+    vmn=$((mn+CHH*60))
 
-    POST_TIME=$( date -d "${CDATE} $vhr hours" +%Y%m%d%H%M )
+    POST_TIME=$( date -d "${CDATE} $vmn minutes" +%Y%m%d%H%M )
     POST_YYYY=${POST_TIME:0:4}
     POST_MM=${POST_TIME:4:2}
     POST_DD=${POST_TIME:6:2}
@@ -180,8 +187,9 @@ EOF
 #-----------------------------------------------------------------------
     jobscript=run_upp_$fhr.job
     cp ${template_job} ${jobscript}
-    sed -i -e "s#WWWDDD#${FHR_DIR}#;s#NNNNNN#${nodes1}#;s#MMMMMM#${memid}#;s#PPPPPP#${platppn}#g;s#TTTTTT#${numthread}#g;s#EEEEEE#${FV3SARDIR}#;s#DDDDDD#${CDATE}#;s#CCCHHH#CHH#;s#HHHHHH#${hr}#;" ${jobscript}
+    sed -i -e "s#WWWDDD#${FHR_DIR}#;s#NNNNNN#${nodes1}#;s#MMMMMM#${memid}#;s#PPPPPP#${platppn}#g;s#TTTTTT#${numthread}#g;s#EEEEEE#${FV3SARDIR}#;s#DDDDDD#${CDATE}#;s#CCCHHH#${CHH}#;s#HHHHHH#${mn}#;" ${jobscript}
 
+    echo -n "Run UPP for memeber $memid at forecast $mn minutes .... "
     sbatch $jobscript
 
   done

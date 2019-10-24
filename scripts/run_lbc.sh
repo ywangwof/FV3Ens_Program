@@ -1,15 +1,13 @@
 #!/bin/bash
 casedate=${1-2019052018}
-numens=${2-4}
+numens=${2-40}
 
 caseHH=${casedate:8:2}
 
 rootdir="/oldscratch/ywang/EPIC/Program"
 
-wrkdir="/oldscratch/ywang/EPIC/test_runs/${casedate}"
-gdasdir="/oldscratch/ywang/EPIC/GDAS"
-
-griddir="$wrkdir/grid_orog"
+wrkdir="/scratch/ywang/EPIC/test_runs/${casedate}"
+gdasdir="/scratch/ywang/EPIC/GDAS"
 
 for imn in $(seq 1 $numens); do
   ensmemid=$(printf %3.3i $imn)

@@ -1,12 +1,12 @@
 #!/bin/bash
 #SBATCH -A smallqueue
 #SBATCH -p workq
-#SBATCH -J upp_MMMMMM-HHHHHH
+#SBATCH -J upp_HHHHHH-MMMMMM
 #SBATCH --nodes=NNNNNN --ntasks-per-node=PPPPPP --cpus-per-task=TTTTTT
 #SBATCH --exclusive
 #SBATCH -t 00:50:00
-#SBATCH -o WWWDDD/upp_HHHHHH_%j.out
-#SBATCH -e WWWDDD/upp_HHHHHH_%j.err
+#SBATCH -o upp_HHHHHH_%j.out
+#SBATCH -e upp_HHHHHH_%j.err
 
 time1=$(date '+%s')
 echo "Job Started: $(date). Job Id:  $SLURM_JOBID"
@@ -19,9 +19,9 @@ echo " "
 #-----------------------------------------------------------------------
 #
 
-
-#export APRUN="mpirun -l -np $PBS_NP"
-export APRUN="srun -n 1"
+task=$((NNNNNN*PPPPPP))
+APRUN="srun -n ${task}"
+export OMP_NUM_THREADS=TTTTTT
 
 UPPEXE=EEEEEE/exec
 
@@ -33,12 +33,19 @@ UPPEXE=EEEEEE/exec
 #-----------------------------------------------------------------------
 
 CDATE="DDDDDD"
-fhr="HHHHHH"
 
 cyc="CCCHHH"
-tmmark="tm${cyc}"
 
 TITLE="fv3sar_$CDATE"
+flen=HHHHHH         # forecast length in minutes
+fhr=$((flen/60))
+fmn=$((flen%60))
+
+fhr2=$(printf "%02d" ${fhr})
+fhr3=$(printf "%03d" ${flen})
+tmmark="tm${fhr3}"
+
+validhm=$( date -d "${CDATE} $cyc:00 $flen minutes" +%H%M )
 
 #-----------------------------------------------------------------------
 #
@@ -50,15 +57,12 @@ cd WWWDDD
 
 ${APRUN} ${UPPEXE}/ncep_post < itag
 
-fhr2=$(printf "%02d" ${fhr})
-fhr3=$(printf "%03d" ${fhr})
-
-mv BGDAWP.GrbF${fhr2} ../${TITLE}.t${cyc}z.bgdawp${fhr3}.${tmmark}
+mv BGDAWP.GrbF${fhr2} ../${TITLE}.t${cyc}z.bgdawp${validhm}.${tmmark}
 #mv BGRD3D.GrbF${fhr2} ../${TITLE}.t${cyc}z.bgrd3d${fhr3}.${tmmark}
 
-if [[ -f ../${TITLE}.t${cyc}z.bgdawp${fhr3}.${tmmark} ]]; then
-  touch ../${TITLE}.t${cyc}z.bgdawp${fhr3}.${tmmark}_ready
-fi
+#if [[ -f ../${TITLE}.t${cyc}z.bgdawp${validhm}.${tmmark} ]]; then
+#  touch ../${TITLE}.t${cyc}z.bgdawp${validhm}.${tmmark}_ready
+#fi
 
 #-----------------------------------------------------------------------
 #
@@ -66,7 +70,7 @@ fi
 #
 #-----------------------------------------------------------------------
 
-echo "Post-processing completed for fhr = $fhr hr."
+echo "Post-processing completed for fmn = $flen minutes."
 
 time2=$(date '+%s')
 

@@ -34,7 +34,7 @@ export ymd=`echo $CDATE | cut -c 1-8`
 export gfs_dir=${WRK_DIR}/GDAS
 
 ulimit -s unlimited
-ulimit -a
+#ulimit -a
 
 CRES=`echo $CASE | cut -c 2-`
 #export OUTDIR=${WRK_DIR}/chgres_${CASE}_$ymd

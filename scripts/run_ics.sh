@@ -1,19 +1,20 @@
 #!/bin/bash
 casedate=${1-2019052018}
-numens=${2-4}
+numens=${2-40}
 
 caseHH=${casedate:8:2}
 
 rootdir="/oldscratch/ywang/EPIC/Program"
 
-wrkdir="/oldscratch/ywang/EPIC/test_runs/${casedate}"
-gdasdir="/oldscratch/ywang/EPIC/GDAS"
-griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl"
+wrkdir="/scratch/ywang/EPIC/test_runs/${casedate}"
+gdasdir="/scratch/ywang/EPIC/GDAS"
 
 #
 # Link grid and orog files
 #
 if [[ ! -e $wrkdir/grid_orog ]]; then
+  griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl"
+
   mkdir -p $wrkdir/grid_orog
 
   cd $wrkdir/grid_orog
@@ -27,10 +28,10 @@ if [[ ! -e $wrkdir/grid_orog ]]; then
   ln -sf $griddir/grid/${CCASE}_mosaic.nc               .
 
   rename ${CCASE} C768 ${CCASE}_*
-else
-  fn=$(ls $wrkdir/grid_orog/C*_grid.tile7.halo3.nc)
-  fm=${fn##$wrkdir/grid_orog/}
-  CCASE=${fm%%_grid.tile7.halo3.nc}
+#else
+#  fn=$(ls $wrkdir/grid_orog/C*_grid.tile7.halo3.nc)
+#  fm=${fn##$wrkdir/grid_orog/}
+#  CCASE=${fm%%_grid.tile7.halo3.nc}
 fi
 
 for imn in $(seq 1 $numens); do

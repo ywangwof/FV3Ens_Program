@@ -10,11 +10,7 @@
 #
 set -x
 
-CASEDATE="20190520"
-CASETIME="18"
-
 export NODES=1
-
 #
 # the following exports can all be set or just will default to what is in global_chgres_driver.sh
 #
@@ -37,11 +33,11 @@ export nst_anl=.false.       # false or true to include NST analysis
 export ymd=`echo $CDATE | cut -c 1-8`
 
 export BASE_GSM=/oldscratch/ywang/EPIC/CAPS_code/FV3test/fv3sar
-export DATA=/oldscratch/ywang/EPIC/CAPS_code/FV3test/${CASEDATE}/tmp/wrk.chgres
+export DATA=/oldscratch/ywang/EPIC/CAPS_code/FV3test/${CDATE}/tmp/wrk.chgres
 export APRUNC="srun -n 1"
-export INIDIR=/oldscratch/ywang/EPIC/GDAS/${CASEDATE}${CASETIME}_mem001
+export INIDIR=/oldscratch/ywang/EPIC/GDAS/${CDATE}_mem001
 export HOMEgfs=${BASE_GSM}
-export FIXfv3=/oldscratch/ywang/EPIC/CAPS_code/FV3test/${CASEDATE}/fix/fix_fv3
+export FIXfv3=/oldscratch/ywang/EPIC/CAPS_code/FV3test/${CDATE}/fix/fix_fv3
 
 export CDAS=gfs                  # gfs or gdas
 CRES=`echo $CASE | cut -c 2-`

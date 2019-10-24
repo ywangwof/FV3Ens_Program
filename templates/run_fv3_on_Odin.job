@@ -1,0 +1,68 @@
+#!/bin/bash
+#SBATCH -A smallqueue
+#SBATCH -p workq
+#SBATCH -J fv3sar-MMMMMM
+#SBATCH -o log.out.fv3_%j
+#SBATCH -e log.err.fv3_%j
+#SBATCH -N NODESN                 # Total # of nodes
+#SBATCH -n NPEEEE                 # Total # of mpi tasks
+#SBATCH -t 02:10:00               # Run time (hh:mm:ss)
+
+# should be defined in the calling script
+WRKDIR=TTTDDD/mem_MMMMMM
+
+time1=$(date '+%s')
+echo "Job Started: $(date). Job Id:  $SLURM_JOBID"
+echo " "
+
+ulimit -s unlimited
+#ulimit -a
+
+#export PSM_TID_SENDSESSIONS_MAX=16384
+##export OMP_STACKSIZE=1024m
+#export KMP_AFFINITY=scatter
+
+
+cd $WRKDIR
+
+#-----------------------------------------------------------------------
+# run the FV3 job
+#-----------------------------------------------------------------------
+#
+#ulimit -a
+
+set -x
+
+export MPI_TYPE_DEPTH=20
+export OMP_STACKSIZE=512M
+export OMP_NUM_THREADS=2
+export ESMF_RUNTIME_COMPLIANCECHECK=OFF:depth=4
+
+srun ./fv3_gfs.x
+
+if [[ $(ls dynf000:0?:??.nc | wc -l) -eq 1 ]]; then
+  orgfile=$(ls dynf000:0?:??.nc)
+  ln -sf $orgfile dynf000:00:00.nc
+fi
+
+if [[ $(ls phyf000:0?:??.nc | wc -l) -eq 1 ]]; then
+  orgfile=$(ls phyf000:0?:??.nc)
+  ln -sf $orgfile phyf000:00:00.nc
+fi
+
+touch done.fv3
+
+time2=$(date '+%s')
+
+let diff=time2-time1
+let hour=diff/3600
+let diff=diff%3600
+let min=diff/60
+let sec=diff%60
+
+echo -n "Job   Ended: $(date). "
+printf 'Job run time:  %02d:%02d:%02d' $hour $min $sec
+echo " "
+
+exit
+

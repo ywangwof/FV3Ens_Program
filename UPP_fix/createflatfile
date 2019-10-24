@@ -1,0 +1,10 @@
+#!/bin/bash
+
+UPPSRC=/lfs3/projects/hpc-wof1/ywang/regional_fv3/EMC_post/parm
+
+PERLXML=${UPPSRC}/PostXMLPreprocessor.pl
+FV3SARCTRLFILENAME=fv3sar_hwt2019.xml
+FV3SARAVAILXMLFILENAME=fv3sar_post_avblflds.xml
+FV3SARFLATFILENAME=postxconfig-NT-fv3sar.txt
+
+/bin/perl ${PERLXML} ${FV3SARCTRLFILENAME} ${FV3SARAVAILXMLFILENAME} ${FV3SARFLATFILENAME}

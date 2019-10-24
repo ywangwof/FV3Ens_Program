@@ -11,13 +11,16 @@ EXEPRO="${rootdir}/exec/fv3_32bit_cntl.exe"
 griddir="$wrkdir/grid_orog"
 ENDHOUR="6"
 
-fn=$(realpath $wrkdir/grid_orog/C768_oro_data.tile7.halo0.nc)
+#
+# find equivalent grid RES
+#
+fn=$(realpath $wrkdir/grid_orog/C768_grid.tile7.halo3.nc)
 if [[ ! -e $fn ]]; then
-  echo "file $wrkdir/grid_orog/C768_oro_data.tile7.halo0.nc not exit."
+  echo "file $wrkdir/grid_orog/C768_grid.tile7.halo3.nc not exit."
   exit 0
 fi
 fm=$(basename $fn)
-JCASE=${fm%%_oro_data.tile7.halo0.nc}
+JCASE=${fm%%_grid.tile7.halo3.nc}
 
 #
 # Guss process number and block size
@@ -41,6 +44,10 @@ fi
 nx=$((lonx/layout_x))
 ny=$((latx/layout_y))
 npoints=$((nx*ny))
+
+#
+# find a suitable block size
+#
 for b in $(seq 60 -1 1); do
   a=$((npoints%b))
   if [[ $a -eq 0 ]]; then
@@ -82,9 +89,9 @@ for imn in $(seq 1 $numens); do
         s|NODESN|${n}|g
 EOF
 
-  jobscript="fv3_${casedate}.job"
+  jobscript="run_fv3_${casedate}.job"
 
-  sed -f sed_sarfv3 ${rootdir}/templates/run_on_Odin.job > $jobscript
+  sed -f sed_sarfv3 ${rootdir}/templates/run_fv3_on_Odin.job > $jobscript
 
   echo "sbatch $jobscript"
   sbatch $jobscript

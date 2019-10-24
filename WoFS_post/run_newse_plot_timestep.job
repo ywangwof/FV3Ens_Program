@@ -1,0 +1,97 @@
+#!/bin/csh
+#==================================================================
+#SBATCH -J plot_time
+#SBATCH -o /oldscratch/larissa.reames/fv3sar_post/logs/plot_time.out
+#SBATCH -e /oldscratch/larissa.reames/fv3sar_post/logs/plot_time.err
+#SBATCH -A smallqueue
+#SBATCH -p workq
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
+#SBATCH -t 01:00:00
+
+set echo
+
+# cd to directory where job was submitted from
+cd /oldscratch/larissa.reames/fv3sar_post
+
+#$SLURM_SUBMIT_DIR
+
+setenv MALLOC_MMAP_MAX 0
+setenv MALLOC_TRIM_THRESHOLD 536870912
+
+# User defined variables: 
+
+set date = 20180501
+set base_dir = /oldscratch/larissa.reames/fv3sar_post/
+set fcst_base = /oldscratch/larissa.reames/fv3sar_post/wrf_lookalikes/
+#set fcst_base = /scratch/jtti/realtime/FCST/
+
+#set times = (1900 1930 2000 2030 2100 2130 2200 2230 2300 2330 0000 0030 0100 0130 0200 0230 0300)
+#set nt = (72 36 72 36 72 36 72 36 72 36 72 36 72 36 72 36 72)
+
+#set times = (1600 1700 1800 1900 2000 2100 2200 2300 0000 0100 0200 0300 0400)
+#set nt = (72 72 72 72 72 72 72 72 72 72 72 72 72)
+
+#set times = (1900 2000 2100 2200 2300 0000)
+#set nt = ( 72 60 48 36 24 12 )
+
+set times = (2100)
+set nt = (48)
+
+# Build directories needed: 
+
+set fcst = $fcst_base$date"_NOTENDLIM_DT30_DIFFSPLIT/"
+set summary = "/oldscratch/larissa.reames/fv3sar_post/summary/"$date"_NOTENDLIM_DT30_DIFFSPLIT/"
+set image = "/www/wof.nssl.noaa.gov/newse_research/"$date"_FV3SAR_NOTENDLIM_DT30_DIFFSPLIT/"
+set flagdir = $base_dir"flags/"$date"/"
+set mapfile = $base_dir"basemap/news-e_MAP_"$date"_1900.pickle"
+
+if (! -d $image) then
+  mkdir $image
+endif
+
+if ( ! -d $summary) then
+  mkdir $summary
+endif
+set flagdir = $base_dir"flags/"$date
+
+if ( ! -d $flagdir) then
+  mkdir $flagdir
+endif
+
+# Run wrapper script for forecast: 
+
+sleep 1
+
+set i = 1
+
+foreach dir ($times)
+   set fcstdir = $fcst$dir"/"
+   set flagfile = $flagdir"/"$dir"_timestep.txt"
+   set tempsumdir = $summary$dir"/"
+   set tempimagedir = $image$dir"/"
+
+   echo $fcstdir
+   echo $flagfile
+   echo $tempsumdir
+   echo $tempimagedir
+
+   if ( ! -d $tempimagedir) then
+     mkdir $tempimagedir
+   endif
+
+   set tempnt = $nt[$i]
+   echo $tempnt
+
+   if ( -d $fcstdir ) then
+      if ( ! -e $flagfile ) then
+         touch $flagfile 
+         python wrapper_timestep.py -d $tempsumdir -o $tempimagedir -m $mapfile -e $tempnt 
+         #exit(0)
+      endif
+   endif 
+   @ i++
+end
+
+sleep 10
+

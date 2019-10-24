@@ -33,7 +33,7 @@ for imn in $(seq 1 $numens); do
         s|WRK_DIR=.*|WRK_DIR=${memdir}|g
         s|FIXfv3=.*|FIXfv3=$wrkdir/grid_orog|g
 EOF
-  sed -f sed_chgres_lbc ${rootdir}/scripts/run_chgres.sh > run_chgres_lbc.sh
+  sed -f sed_chgres_lbc ${rootdir}/scripts/driver_chgres_lbc.sh > run_chgres_lbc.sh
 
   chmod 755 run_chgres_lbc.sh
   ./run_chgres_lbc.sh

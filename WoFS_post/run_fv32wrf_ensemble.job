@@ -1,0 +1,72 @@
+#!/bin/csh
+#==================================================================
+#SBATCH -J fv32wrf
+#SBATCH -o log.out.fv32wrf2019_%j
+#SBATCH -e log.err.fv32wrf2019_%j
+#SBATCH -A smallqueue
+#SBATCH -p workq
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
+#SBATCH -t 02:00:00
+
+#set echo
+
+# cd to directory where job was submitted from
+cd /oldscratch/ywang/EPIC/Program/WoFS_post
+
+# User defined variables:
+
+set date = 20190520
+set base_dir = /oldscratch/ywang/EPIC/Program/WoFS_post
+set fcst_base = /oldscratch/ywang/EPIC/test_runs
+
+set times = (18)
+set nt = (13)
+
+# Run wrapper script for forecast:
+
+setenv MALLOC_MMAP_MAX 0
+setenv MALLOC_TRIM_THRESHOLD 536870912
+set PYTHON = /scratch/software/Odin/python/anaconda2/bin/python
+setenv PATH /scratch/software/Odin/python/anaconda2/bin:$PATH
+
+sleep 1
+
+set i = 1
+foreach dir ($times)
+
+   set fcstdir = "$fcst_base/$date$dir"
+   set summarydir = "${fcst_base}/$date$dir/summary"
+
+   #
+   # Build directories needed:
+   #
+   if ( ! -d $summarydir) then
+     mkdir -p $summarydir
+   endif
+   set flagdir = "${fcst_base}/$date$dir/flags/"
+
+   if ( ! -d $flagdir) then
+     mkdir -p $flagdir
+   endif
+
+   set flagfile = "$flagdir/done.fv32wrf"
+
+   echo $fcstdir
+   echo $flagfile
+   echo $summarydir
+
+   set tempnt = $nt[$i]
+   echo $tempnt
+
+   if ( -d $fcstdir ) then
+      if ( ! -e $flagfile ) then
+         $PYTHON wrapper_post_fv32wrf.py -d $fcstdir -o $summarydir -e $tempnt
+         touch $flagfile
+      endif
+   endif
+   @ i++
+end
+
+sleep 10
+

@@ -55,7 +55,7 @@ for imn in $(seq 1 $numens); do
         s|FIXfv3=.*|FIXfv3=$wrkdir/grid_orog|g
         s|DATA=.*|DATA=$memdir/tmp/wrk.chgres|g
 EOF
-  sed -f sed_chgres_ic ${rootdir}/scripts/run_chgres_regional.c768 > run_chgres_ic.ksh
+  sed -f sed_chgres_ic ${rootdir}/scripts/driver_chgres_regional.c768 > run_chgres_ic.ksh
 
   sbatch run_chgres_ic.ksh
 

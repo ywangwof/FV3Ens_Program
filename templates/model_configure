@@ -1,16 +1,19 @@
-total_member:            1
 print_esmf:              .false.
-PE_MEMBER01:             NPES 
+
+total_member:            1
+PE_MEMBER01:             NPES
+
 start_year:              YYYY
 start_month:             MM
-start_day:               DD 
-start_hour:              00
-start_minute:            0
+start_day:               DD
+start_hour:              HH
+start_minute:            00
 start_second:            0
 nhours_fcst:             ENDHOUR
+nseconds_fcst:           0
 RUN_CONTINUE:            .false.
 ENS_SPS:                 .false.
-dt_atmos:                90
+dt_atmos:                60
 cpl:                     .false.
 calendar:                'julian'
 memuse_verbose:          .false.
@@ -20,5 +23,35 @@ ncores_per_node:         48
 debug_affinity:          .true.
 restart_interval:        0
 
-quilting:                .false.
+output_1st_tstep_rst:   .true.
 
+quilting:               .true.
+
+write_groups:            1
+write_tasks_per_group:   NTASK
+num_files:               2
+filename_base:           'dyn''phy'
+output_file:             'netcdf'
+write_nemsioflip:        .false.
+write_fsyncflag:         .false.
+
+output_grid:             'lambert_conformal'
+cen_lon:                 -98.0
+cen_lat:                  34.5
+stdlat1:                  30.0
+stdlat2:                  60.0
+nx:                       650
+ny:                       550
+lon1:                    -107.63
+lat1:                     26.53
+dx:                       3000.
+dy:                       3000.
+
+nfhout:                  0
+nmhout:                  10
+nshout:                  0
+nfhmax_hf:               60
+nfhout_hf:               0
+nfmout_hf:               10
+nfsout_hf:               0
+nsout:                   -1

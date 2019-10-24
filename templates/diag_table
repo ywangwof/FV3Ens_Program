@@ -2,7 +2,7 @@ YYYYMMDD.00Z.C768.32bit.non-hydro
 YYYY MM DD 00 0 0
 
 "grid_spec",              -1,  "months",   1, "days",  "time"
-"atmos_static",           -1,  "hours",    1, "hours", "time"
+#"atmos_static",           -1,  "hours",    1, "hours", "time"
 #"atmos_4xdaily",           1,  "hours",    1, "days",  "time"
 "fv3_history",             0,  "hours",    1, "hours", "time"
 "fv3_history2d",           0,  "hours",    1, "hours", "time"
@@ -94,11 +94,11 @@ YYYY MM DD 00 0 0
 ###
 # gfs static data
 ###
- "dynamics",      "pk",          "pk",           "atmos_static",      "all", .false.,  "none", 2
- "dynamics",      "bk",          "bk",           "atmos_static",      "all", .false.,  "none", 2
- "dynamics",      "hyam",        "hyam",         "atmos_static",      "all", .false.,  "none", 2
- "dynamics",      "hybm",        "hybm",         "atmos_static",      "all", .false.,  "none", 2
- "dynamics",      "zsurf",       "zsurf",        "atmos_static",      "all", .false.,  "none", 2
+# "dynamics",      "pk",          "pk",           "atmos_static",      "all", .false.,  "none", 2
+# "dynamics",      "bk",          "bk",           "atmos_static",      "all", .false.,  "none", 2
+# "dynamics",      "hyam",        "hyam",         "atmos_static",      "all", .false.,  "none", 2
+# "dynamics",      "hybm",        "hybm",         "atmos_static",      "all", .false.,  "none", 2
+# "dynamics",      "zsurf",       "zsurf",        "atmos_static",      "all", .false.,  "none", 2
 ###
 # FV3 variabls needed for NGGPS evaluation
 ###
@@ -108,6 +108,7 @@ YYYY MM DD 00 0 0
 "gfs_dyn",     "temp",        "tmp",       "fv3_history",    "all",  .false.,  "none",  2
 "gfs_dyn",     "liq_wat",     "clwmr",     "fv3_history",    "all",  .false.,  "none",  2
 "gfs_dyn",     "o3mr",        "o3mr",      "fv3_history",    "all",  .false.,  "none",  2
+"gfs_dyn",     "pfnh",        "pres",      "fv3_history",    "all",  .false.,  "none",  2
 "gfs_dyn",     "delp",        "dpres",     "fv3_history",    "all",  .false.,  "none",  2
 "gfs_dyn",     "delz",        "delz",      "fv3_history",    "all",  .false.,  "none",  2
 "gfs_dyn",     "w",           "dzdt",      "fv3_history",    "all",  .false.,  "none",  2

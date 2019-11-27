@@ -48,15 +48,14 @@ else:
 pool = Pool(processes=(24))              # set up a queue to run
 
 ######### Check to see if all forecasts from all members are present: #########
-print 'SOMETHING!!!!!'
-ne = 18
+ne = 40
 member_dirs = []
 
 while (len(member_dirs) < ne):         #wait for all members to be running
    member_dirs = []
    member_dirs_temp = os.listdir(fcst_dir)
    for d, dir in enumerate(member_dirs_temp):
-      if (dir[0:3] == 'ENS'):
+      if (dir[0:4] == 'mem_'):
          member_dirs.append(dir)
    print 'NUMBER OF MEMBER DIRS: ', len(member_dirs)
    if (len(member_dirs) == ne):
@@ -68,20 +67,19 @@ while (len(member_dirs) < ne):         #wait for all members to be running
 member_dirs.sort()
 
 ######### Post it. #########
-print 'SOMETHING ELSE!!!!!'
 
 current_t = 0
 ens_t = 0
 iteration = 0
 
-while (current_t < fcst_nt-1): 
+while (current_t < fcst_nt-1):
 #for t in range(0, fcst_nt):
    process = 1
 
 ##### process swath files from completed ens files
 
    for n in range(0, len(member_dirs)):
-      temp_dir = os.path.join(fcst_dir, member_dirs[n])
+      temp_dir = os.path.join(fcst_dir, member_dirs[n],'summary')
 
       member_files = []
       temp_files = os.listdir(temp_dir)
@@ -90,16 +88,16 @@ while (current_t < fcst_nt-1):
          if (file[0:7] == 'FV3_ENS'):                               #assumes filename format of: "wrfout_d02_yyyy-mm-dd_hh:mm:ss
 #         if (file[0:6] == 'wrfwof'):                               #assumes filename format of: "wrfout_d02_yyyy-mm-dd_hh:mm:ss
             member_files.append(file)
-      #if (len(member_files) < (current_t+1)): 
+      #if (len(member_files) < (current_t+1)):
       #   process = 0
-     
-   if (process == 1): 
-      if (current_t >= 3): 
+
+   if (process == 1):
+      if (current_t >= 3):
          cmd = "python news_e_post_ensemble.py -d %s -o %s -t %d " % (fcst_dir, outdir, (current_t-3))
          pool.apply_async(run_script, (cmd,))
       current_t = current_t + 1
       iteration = 0
-   else: 
+   else:
       iteration = iteration + 1
       iter_time = iteration * 5.
       time.sleep(5)

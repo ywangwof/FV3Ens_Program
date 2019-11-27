@@ -34,34 +34,32 @@ else:
 
 ############################ Find WRFOUT files to process: #################################
 
-### Find member dirs ### 
+### Find member dirs ###
 
-ne = 18
+ne = 40
 member_dirs = []
 
 member_dirs_temp = os.listdir(indir)
 
 for d, dir in enumerate(member_dirs_temp):
-   if (dir[0:3] == 'ENS'):
+   if (dir[0:4] == 'mem_'):
       member_dirs.append(dir)
 
 member_dirs.sort() #sorts as members [1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9]
 
 files = []
 
-for n in range(0, len(member_dirs)): 
-   temp_dir = os.path.join(indir, member_dirs[n])
+for n in range(0, len(member_dirs)):
+   temp_dir = os.path.join(indir, member_dirs[n],'summary')
 
    member_files = []
-   temp_files = os.listdir(temp_dir) 
+   temp_files = os.listdir(temp_dir)
 
-   for f, file in enumerate(temp_files): 
+   for f, file in enumerate(temp_files):
 #      if (file[0:6] == 'wrfwof'):                               #assumes filename format of: "wrfout_d02_yyyy-mm-dd_hh:mm:ss
       if (file[0:7] == 'FV3_ENS'):                               #assumes filename format of: "wrfout_d02_yyyy-mm-dd_hh:mm:ss
          member_files.append(file)
    member_files.sort()
-   print member_files
-   print t
    files.append(os.path.join(temp_dir, member_files[t]))
 
 files.sort()  #should have sorted directory paths to each ensemble file to be processed
@@ -69,7 +67,7 @@ files.sort()  #should have sorted directory paths to each ensemble file to be pr
 
 ##################### Process WRFOUT Files ########################
 
-for f, infile in enumerate(files): 
+for f, infile in enumerate(files):
 
    try:							#open WRFOUT file
       fin = netCDF4.Dataset(infile, "r")
@@ -100,13 +98,16 @@ for f, infile in enumerate(files):
       valid_time = valid_hr + valid_min			#HHMM string for valid time
 
       ### Set output path ###
-      timestep = str(t) 
-      if (len(timestep) == 1): 
+      timestep = str(t)
+      if (len(timestep) == 1):
          timestep = '0' + timestep
-      outname = "news-e_ENS_" + timestep + "_" + init_date + "_" + init_time + "_" + valid_time + ".nc"         #output file
-      output_path = outdir + outname
+      outname = "fv3sar_ENS_" + timestep + "_" + init_date + "_" + init_time + "_" + valid_time + ".nc"         #output file
 
-      ### Get grid/projection info ### 
+      output_path = os.path.join(outdir,'enspost')
+      if not os.path.lexists(output_path): os.mkdir(output_path)
+      output_path =  os.path.join(outdir,'enspost',outname)
+
+      ### Get grid/projection info ###
 
       dx = fin.DX                                             #east-west grid spacing (m)
       dy = fin.DY                                             #north-south grid spacing (m)
@@ -123,13 +124,13 @@ for f, infile in enumerate(files):
       ny = xlat.shape[0]
       nx = xlat.shape[1]
 
-      ### Calculate initial and valid time in seconds ### 
+      ### Calculate initial and valid time in seconds ###
 
       init_time_seconds = int(init_hr) * 3600. + int(init_min) * 60.
       valid_time_seconds = int(valid_hr) * 3600. + int(valid_min) * 60.
 
-      if (valid_time_seconds < 43200.): 	#Convert values past 0000 UTC, assumes forecast not run past 12 UTC 
-         valid_time_seconds = valid_time_seconds + 86400. 
+      if (valid_time_seconds < 43200.): 	#Convert values past 0000 UTC, assumes forecast not run past 12 UTC
+         valid_time_seconds = valid_time_seconds + 86400.
 
       ### Initialize ENS variables: ###
 
@@ -137,7 +138,7 @@ for f, infile in enumerate(files):
       uh_0to2 = np.zeros((ne,ny,nx))
       wz_0to2 = np.zeros((ne,ny,nx))
       w_up = np.zeros((ne,ny,nx))
-      ws_80 = np.zeros((ne,ny,nx))
+      #ws_80 = np.zeros((ne,ny,nx))
       hail = np.zeros((ne,ny,nx))
       hailcast = np.zeros((ne,ny,nx))
       comp_dz = np.zeros((ne,ny,nx))
@@ -147,8 +148,8 @@ for f, infile in enumerate(files):
 
 ############################### Read WRFOUT variables: ##################################
 
-   ws_80_temp = fin.variables["wspd80"][:,:]
-   ws_80[f,:,:] = ws_80_temp * 1.943844                               #convert to kts
+   #ws_80_temp = fin.variables["wspd80"][:,:]
+   #ws_80[f,:,:] = ws_80_temp * 1.943844                               #convert to kts
 
    w_up[f,:,:] = fin.variables["w_up_max"][:,:]
 
@@ -174,7 +175,7 @@ for f, infile in enumerate(files):
 #   p = fin.variables["P"][:,:,:]
 #   pb = fin.variables["PB"][:,:,:]
    #dz = fin.variables["delz"][:,:,:]
-    
+
 #   uc = (u[:,:,:-1]+u[:,:,1:])/2.                          #convert staggered grids to centered
 #   vc = (v[:,:-1,:]+v[:,1:,:])/2.
    #wc = (w[:-1,:,:]+w[1:,:,:])/2.
@@ -182,8 +183,8 @@ for f, infile in enumerate(files):
    nz = w.shape[0]                         	        #get number of vertical grid levels
 
    dbz = fin.variables["refl_10cm"][:,:]
-   wz = fin.variables["rel_vort"][:,:,:]
-   
+   #wz = fin.variables["rel_vort"][:,:,:]
+
    wz_0to2[f,:,:] = fin.variables["wz_02_max"][:,:]
    uh_0to2[f,:,:] = fin.variables["uh_02_max"][:,:]
    uh_2to5[f,:,:] = fin.variables["uh_25_max"][:,:]
@@ -242,7 +243,7 @@ setattr(fout,'TRUELAT2',true_lat_2)
 setattr(fout,'PROJECTION','Lambert Conformal')
 setattr(fout,'INIT_TIME_SECONDS',init_time_seconds)
 setattr(fout,'VALID_TIME_SECONDS',valid_time_seconds)
-setattr(fout,'FORECAST_TIME_STEP',t) 
+setattr(fout,'FORECAST_TIME_STEP',t)
 
 ### Create variables ###
 
@@ -288,9 +289,9 @@ w_up_var = fout.createVariable('w_up', 'f4', ('NE','NY','NX',))
 w_up_var.long_name = "Max updraft velocity"
 w_up_var.units = "m/s"
 
-ws_80_var = fout.createVariable('ws_80', 'f4', ('NE','NY','NX',))
-ws_80_var.long_name = "80-m wind speed"
-ws_80_var.units = "kts"
+#ws_80_var = fout.createVariable('ws_80', 'f4', ('NE','NY','NX',))
+#ws_80_var.long_name = "80-m wind speed"
+#ws_80_var.units = "kts"
 
 hail_var = fout.createVariable('hail', 'f4', ('NE','NY','NX',))
 hail_var.long_name = "Max hail size at the surface (NSSL 2-moment)"
@@ -313,11 +314,11 @@ fout.variables['comp_dz'][:] = comp_dz
 fout.variables['rain'][:] = rain
 #fout.variables['soil_moisture'][:] = soil_moisture
 fout.variables['w_up'][:] = w_up
-fout.variables['ws_80'][:] = ws_80
+#fout.variables['ws_80'][:] = ws_80
 fout.variables['hail'][:] = hail
 fout.variables['hailcast'][:] = hailcast
 
-### Close output file ### 
+### Close output file ###
 
 fout.close()
 del fout

@@ -45,7 +45,7 @@ radius_gauss               = 2			#grid point radius of convolution operator
 
 kernel                     = gauss_kern(radius_gauss)   #convolution operator kernel
 
-neighborhood               = 15                 #15 gridpoint radius for probability matched mean 
+neighborhood               = 15                 #15 gridpoint radius for probability matched mean
 
 comp_dz_thresh             = 45.		#40 dBZ
 rain_1_thresh              = 0.5		#0.5 inches
@@ -62,10 +62,12 @@ uh_2to5_thresh             = 60.		#60 m^2/s^2
 
 ############################ Find WRFOUT files to process: #################################
 
-### Find ENS Summary files ### 
+### Find ENS Summary files ###
 
-ne = 18
-#start_t = 0 
+ne = 40
+#start_t = 0
+tintvmin = 10          # Forecast output interval
+int1hr = 60/10
 
 ens_files = []
 #swt_files = []
@@ -78,40 +80,40 @@ summary_files_temp = os.listdir(summary_dir)
 #   str_t = str(swt_t)
 #   if (len(str_t) == 1):
 #      str_t = '0' + str_t
-# 
-#   for f, file in enumerate(summary_files_temp): 
+#
+#   for f, file in enumerate(summary_files_temp):
 #      if ((file[-28:-25] == 'SWT') and (file[-24:-22] == str_t)):       #assumes filename format of: news-e_ENS_20170516_2200_0000.nc
 #         swt_found = 1
 #
-#   if ((swt_found == 1) and ((swt_t % 12) == 0) and (swt_t < fcst_nt)): 
+#   if ((swt_found == 1) and ((swt_t % int1hr) == 0) and (swt_t < fcst_nt)):
 #      start_t = swt_t
 #      time.sleep(2)
 
 ############################ Find and process ENS and SWT files: #################################
-   
-for f, file in enumerate(summary_files_temp): 
+
+for f, file in enumerate(summary_files_temp):
    if (file[-28:-25] == 'ENS'):                               #assumes filename format of: news-e_ENS_20170516_2200_0000.nc
-      ens_files.append(file) 
+      ens_files.append(file)
 #   if (file[-28:-25] == 'SWT'):                               #assumes filename format of: news-e_ENS_20170516_2200_0000.nc
-#      swt_files.append(file) 
-      
-ens_files.sort() 
-#swt_files.sort() 
+#      swt_files.append(file)
+
+ens_files.sort()
+#swt_files.sort()
 #print start_t, 'START'
 
 for tt in range(23, t):
 
-#   if (start_t > 0): 
+#   if (start_t > 0):
 #      swt_file = swt_files[start_t]
 #      swt_infile = os.path.join(summary_dir, swt_file)
 
    ens_file = ens_files[tt]
    infile = os.path.join(summary_dir, ens_file)
 
-   if (tt == 23): 
+   if (tt == 23):
    ### Set output path ###
       outname = ens_file[0:7] + '4HR' + ens_file[10:]
-      output_path = summary_dir + outname
+      output_path = os.path.join(summary_dir,outname)
 
    try:                                                 #open WRFOUT file
       fin = netCDF4.Dataset(infile, "r")
@@ -122,7 +124,7 @@ for tt in range(23, t):
 
    if (tt == 23):
 
-#      if (start_t > 0): 
+#      if (start_t > 0):
 #         try:                                                 #open WRFOUT file
 #            swt_fin = netCDF4.Dataset(swt_infile, "r")
 #            print "Opening %s \n" % swt_infile
@@ -149,17 +151,17 @@ for tt in range(23, t):
       ny = xlat.shape[0]
       nx = xlat.shape[1]
 
-#      if (start_t == 0): 
+#      if (start_t == 0):
       uh_2to5                     = fin.variables["uh_2to5"][:,:,:]
       uh_0to2                     = fin.variables["uh_0to2"][:,:,:]
       wz_0to2                     = fin.variables["wz_0to2"][:,:,:]
       rain                        = fin.variables["rain"][:,:,:]
       comp_dz                     = fin.variables["comp_dz"][:,:,:]
       w_up                        = fin.variables["w_up"][:,:,:]
-      ws_80                       = fin.variables["ws_80"][:,:,:]
+      #ws_80                       = fin.variables["ws_80"][:,:,:]
       hail                        = fin.variables["hail"][:,:,:]
       hailcast                    = fin.variables["hailcast"][:,:,:]
-#      else: 
+#      else:
 #         uh_2to5                            = swt_fin.variables["uh_2to5_out"][:,:,:]
 #         uh_0to2                            = swt_fin.variables["uh_0to2_out"][:,:,:]
 #         wz_0to2                            = swt_fin.variables["wz_0to2_out"][:,:,:]
@@ -181,7 +183,7 @@ for tt in range(23, t):
 #         swt_fin.close()
 #         del swt_fin
 
-   else: 
+   else:
 
       uh_2to5                            = np.where((fin.variables["uh_2to5"][:,:,:] > uh_2to5), fin.variables["uh_2to5"][:,:,:], uh_2to5)
 
@@ -217,7 +219,7 @@ for tt in range(23, t):
 
 ###
 
-      ws_80                              = np.where((fin.variables["ws_80"][:,:,:] > ws_80), fin.variables["ws_80"][:,:,:], ws_80)
+      #ws_80                              = np.where((fin.variables["ws_80"][:,:,:] > ws_80), fin.variables["ws_80"][:,:,:], ws_80)
 
 ###
 
@@ -230,18 +232,18 @@ for tt in range(23, t):
    fin.close()
    del fin
 
-### Output swaths at hourly intervals to speed up processing: 
+### Output swaths at hourly intervals to speed up processing:
 
-#if ((t > 1) and ((t % 12) == 0)):
-#   uh_2to5_out = uh_2to5         
-#   uh_0to2_out = uh_0to2         
-#   wz_0to2_out = wz_0to2         
-#   rain_out = rain         
-#   comp_dz_out = comp_dz         
-#   w_up_out = w_up         
-#   ws_80_out = ws_80         
-#   hail_out = hail         
-#   hailcast_out = hailcast         
+#if ((t > 1) and ((t % int1hr) == 0)):
+#   uh_2to5_out = uh_2to5
+#   uh_0to2_out = uh_0to2
+#   wz_0to2_out = wz_0to2
+#   rain_out = rain
+#   comp_dz_out = comp_dz
+#   w_up_out = w_up
+#   ws_80_out = ws_80
+#   hail_out = hail
+#   hailcast_out = hailcast
 
 ##################### Calculate ensemble output variables: ########################
 
@@ -261,7 +263,7 @@ rain_two_90, rain_two_max, rain_two_3km, rain_two_15km, rain_two_27km = calc_ens
 
 w_up_90, w_up_max, w_up_9km, w_up_15km, w_up_27km = calc_ens_products(w_up, radius_max_9km, radius_max_15km, radius_max_27km, kernel, w_up_thresh)
 
-ws_80_90, ws_80_max, ws_80_9km, ws_80_15km, ws_80_27km = calc_ens_products(ws_80, radius_max_9km, radius_max_15km, radius_max_27km, kernel, ws_80_thresh)
+#ws_80_90, ws_80_max, ws_80_9km, ws_80_15km, ws_80_27km = calc_ens_products(ws_80, radius_max_9km, radius_max_15km, radius_max_27km, kernel, ws_80_thresh)
 
 hail_90, hail_max, hail_9km, hail_15km, hail_27km = calc_ens_products(hail, radius_max_9km, radius_max_15km, radius_max_27km, kernel, hail_thresh)
 
@@ -282,9 +284,9 @@ except:
 fout.createDimension('NX', nx)
 fout.createDimension('NY', ny)
 
-#handle hourly swath files: 
+#handle hourly swath files:
 
-if ((t > 1) and ((t % 12) == 0)):
+if ((t > 1) and ((t % int1hr) == 0)):
    fout.createDimension('NE', ne)
 
 ### Set Attributes: ###
@@ -299,7 +301,7 @@ setattr(fout,'TRUE_LAT2',true_lat_2)
 setattr(fout,'PROJECTION','Lambert Conformal')
 setattr(fout,'INIT_TIME_SECONDS',init_time_seconds)
 setattr(fout,'VALID_TIME_SECONDS',valid_time_seconds)
-setattr(fout,'FORECAST_TIME_STEP',t) 
+setattr(fout,'FORECAST_TIME_STEP',t)
 
 ### Create variables ###
 
@@ -315,9 +317,9 @@ hgt1 = fout.createVariable('hgt', 'f4', ('NY','NX',))
 hgt1.long_name = "Height AGL"
 hgt1.units = "m"
 
-#handle hourly swath files: 
+#handle hourly swath files:
 
-#if ((t > 1) and ((t % 12) == 0)):
+#if ((t > 1) and ((t % int1hr) == 0)):
 #   uh_2to5_hourly_out = fout.createVariable('uh_2to5_out', 'f4', ('NE','NY','NX',))
 #   uh_0to2_hourly_out = fout.createVariable('uh_0to2_out', 'f4', ('NE','NY','NX',))
 #   wz_0to2_hourly_out = fout.createVariable('wz_0to2_out', 'f4', ('NE','NY','NX',))
@@ -382,13 +384,13 @@ w_up_maxp = fout.createVariable('w_up_max', 'f4', ('NY','NX',))
 w_up_maxp.long_name = "Accumulated ensemble max value of updraft velocity"
 w_up_maxp.units = "m/s"
 
-ws_80_90p = fout.createVariable('ws_80_90', 'f4', ('NY','NX',))
-ws_80_90p.long_name = "Accumulated ensemble 90th percentile value of 80-m wind speed"
-ws_80_90p.units = "kts"
-
-ws_80_maxp = fout.createVariable('ws_80_max', 'f4', ('NY','NX',))
-ws_80_maxp.long_name = "Accumulated ensemble max value of 80-m wind speed"
-ws_80_maxp.units = "kts"
+#ws_80_90p = fout.createVariable('ws_80_90', 'f4', ('NY','NX',))
+#ws_80_90p.long_name = "Accumulated ensemble 90th percentile value of 80-m wind speed"
+#ws_80_90p.units = "kts"
+#
+#ws_80_maxp = fout.createVariable('ws_80_max', 'f4', ('NY','NX',))
+#ws_80_maxp.long_name = "Accumulated ensemble max value of 80-m wind speed"
+#ws_80_maxp.units = "kts"
 
 hail_90p = fout.createVariable('hail_90', 'f4', ('NY','NX',))
 hail_90p.long_name = "Accumulated ensemble 90th percentile value of max hail size at the surface (NSSL 2-moment)"
@@ -492,17 +494,17 @@ comp_dz_prob_27 = fout.createVariable('comp_dz_prob_27km', 'f4', ('NY','NX',))
 comp_dz_prob_27.long_name = "Accumulated ensemble probability of composite reflectivity greater than 40 dBZ (27 km neighborhood)"
 comp_dz_prob_27.units = "%"
 
-ws_80_prob_9 = fout.createVariable('ws_80_prob_9km', 'f4', ('NY','NX',))
-ws_80_prob_9.long_name = "Accumulated ensemble probability of 80-m wind speed greater than 50 kts (9 km neighborhod)"
-ws_80_prob_9.units = "%"
-
-ws_80_prob_15 = fout.createVariable('ws_80_prob_15km', 'f4', ('NY','NX',))
-ws_80_prob_15.long_name = "Accumulated ensemble probability of 80-m wind speed greater than 50 kts (15 km neighborhod)"
-ws_80_prob_15.units = "%"
-
-ws_80_prob_27 = fout.createVariable('ws_80_prob_27km', 'f4', ('NY','NX',))
-ws_80_prob_27.long_name = "Accumulated ensemble probability of 80-m wind speed greater than 50 kts (27 km neighborhod)"
-ws_80_prob_27.units = "%"
+#ws_80_prob_9 = fout.createVariable('ws_80_prob_9km', 'f4', ('NY','NX',))
+#ws_80_prob_9.long_name = "Accumulated ensemble probability of 80-m wind speed greater than 50 kts (9 km neighborhod)"
+#ws_80_prob_9.units = "%"
+#
+#ws_80_prob_15 = fout.createVariable('ws_80_prob_15km', 'f4', ('NY','NX',))
+#ws_80_prob_15.long_name = "Accumulated ensemble probability of 80-m wind speed greater than 50 kts (15 km neighborhod)"
+#ws_80_prob_15.units = "%"
+#
+#ws_80_prob_27 = fout.createVariable('ws_80_prob_27km', 'f4', ('NY','NX',))
+#ws_80_prob_27.long_name = "Accumulated ensemble probability of 80-m wind speed greater than 50 kts (27 km neighborhod)"
+#ws_80_prob_27.units = "%"
 
 w_up_prob_9 = fout.createVariable('w_up_prob_9km', 'f4', ('NY','NX',))
 w_up_prob_9.long_name = "Accumulated ensemble probability of updraft velocity greater than 10 m/s (9 km neighborhod)"
@@ -542,9 +544,9 @@ hailcast_prob_27.units = "%"
 
 ### Write variables ###
 
-#handle hourly swath files: 
+#handle hourly swath files:
 
-#if ((t > 1) and ((t % 12) == 0)):
+#if ((t > 1) and ((t % int1hr) == 0)):
 #   fout.variables['uh_2to5_out'][:] = uh_2to5_out
 #   fout.variables['uh_0to2_out'][:] = uh_0to2_out
 #   fout.variables['wz_0to2_out'][:] = wz_0to2_out
@@ -577,8 +579,8 @@ fout.variables['rain_max'][:] = rain_half_max
 fout.variables['w_up_90'][:] = w_up_90
 fout.variables['w_up_max'][:] = w_up_max
 
-fout.variables['ws_80_90'][:] = ws_80_90
-fout.variables['ws_80_max'][:] = ws_80_max
+#fout.variables['ws_80_90'][:] = ws_80_90
+#fout.variables['ws_80_max'][:] = ws_80_max
 
 fout.variables['hail_90'][:] = hail_90
 fout.variables['hail_max'][:] = hail_max
@@ -586,7 +588,7 @@ fout.variables['hail_max'][:] = hail_max
 fout.variables['hailcast_90'][:] = hailcast_90
 fout.variables['hailcast_max'][:] = hailcast_max
 
-### 
+###
 
 fout.variables['uh_2to5_prob_9km'][:] = uh_2to5_9km
 fout.variables['uh_2to5_prob_15km'][:] = uh_2to5_15km
@@ -612,9 +614,9 @@ fout.variables['rain_two_prob_27km'][:] = rain_two_27km
 fout.variables['w_up_prob_9km'][:] = w_up_9km
 fout.variables['w_up_prob_15km'][:] = w_up_15km
 fout.variables['w_up_prob_27km'][:] = w_up_27km
-fout.variables['ws_80_prob_9km'][:] = ws_80_9km
-fout.variables['ws_80_prob_15km'][:] = ws_80_15km
-fout.variables['ws_80_prob_27km'][:] = ws_80_27km
+#fout.variables['ws_80_prob_9km'][:] = ws_80_9km
+#fout.variables['ws_80_prob_15km'][:] = ws_80_15km
+#fout.variables['ws_80_prob_27km'][:] = ws_80_27km
 fout.variables['hail_prob_9km'][:] = hail_9km
 fout.variables['hail_prob_15km'][:] = hail_15km
 fout.variables['hail_prob_27km'][:] = hail_27km
@@ -622,7 +624,7 @@ fout.variables['hailcast_prob_9km'][:] = hailcast_9km
 fout.variables['hailcast_prob_15km'][:] = hailcast_15km
 fout.variables['hailcast_prob_27km'][:] = hailcast_27km
 
-### Close output file ### 
+### Close output file ###
 
 fout.close()
 del fout

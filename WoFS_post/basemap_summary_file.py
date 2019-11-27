@@ -35,20 +35,20 @@ else:
 
 edge = 7
 resolution = 'h'
-area_thresh = 1000. 
-damage_files = [] 
+area_thresh = 1000.
+damage_files = []
 
 ############################ Find WRFOUT files to process: #################################
 
-### Find member dirs ### 
+### Find member dirs ###
 
-ne = 18
+ne = 40
 member_dirs = []
 
 member_dirs_temp = os.listdir(indir)
 
 for d, dir in enumerate(member_dirs_temp):
-   if (dir[0:3] == 'ENS'):
+   if (dir[0:4] == 'mem_'):
       member_dirs.append(dir)
 
 member_dirs.sort() #sorts as members [1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -56,7 +56,7 @@ member_dirs.sort() #sorts as members [1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 
 files = []
 
 for n in range(0, len(member_dirs)):
-   temp_dir = os.path.join(indir, member_dirs[n])
+   temp_dir = os.path.join(indir, member_dirs[n],"summary")
 
    member_files = []
    temp_files = os.listdir(temp_dir)
@@ -102,10 +102,10 @@ valid_min = infile[-5:-3]
 valid_time = valid_hr + valid_min                 #HHMM string for valid time
 
       ### Set output path ###
-outname = "news-e_MAP_" + init_date + "_" + init_time + ".pickle"         #output file
-output_path = outdir + outname
+outname = "fv3sar_MAP_" + init_date + "_" + init_time + ".pickle"         #output file
+output_path = os.path.join(outdir, outname)
 
-      ### Get grid/projection info ### 
+      ### Get grid/projection info ###
 
 dx = fin.DX                                             #east-west grid spacing (m)
 dy = fin.DY                                             #north-south grid spacing (m)
@@ -115,8 +115,8 @@ stand_lon = fin.STAND_LON                               #center lon of Lambert c
 true_lat_1 = fin.TRUELAT1                               #true lat value 1 for Lambert conformal conversion (dec deg)
 true_lat_2 = fin.TRUELAT2                               #true lat value 2 for Lambert conformal conversion (dec deg)
 
-xlat = np.flip(fin.variables["xlat"][:,:],(0,1))                    #latitude (dec deg; Lambert conformal)
-xlon = np.flip(fin.variables["xlon"][:,:],(0,1))                    #longitude (dec deg; Lambert conformal)
+xlat = fin.variables["xlat"][:,:]                    #latitude (dec deg; Lambert conformal)
+xlon = fin.variables["xlon"][:,:]                    #longitude (dec deg; Lambert conformal)
 
 ######################### Set domain: ####################################
 
@@ -138,6 +138,6 @@ print 'BASEMAP part'
 
 m = Basemap(llcrnrlon=sw_lon, llcrnrlat=sw_lat, urcrnrlon=ne_lon, urcrnrlat=ne_lat, projection='lcc', lat_1=true_lat_1, lat_2=true_lat_2, lat_0=cen_lat, lon_0=stand_lon, resolution = resolution, area_thresh = area_thresh)
 
-print output_path
+print "Creating %s ... "% output_path
 pl.dump(m,open(output_path,'wb'),-1)
 

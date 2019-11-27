@@ -52,8 +52,8 @@ print 'PLOT SWATH: ', t, name
 #################################### Get input file:  #####################################################
 
 summary_files_temp = os.listdir(summary_dir)
-timestep = str(t) 
-if (len(timestep) == 1): 
+timestep = str(t)
+if (len(timestep) == 1):
    timestep = '0' + timestep
 
 for f, file in enumerate(summary_files_temp):
@@ -66,12 +66,15 @@ print 'Matched SWT File: ', timestep, '   ', infile
 
 resolution 	= 'h'
 area_thresh 	= 1000.
+tintvmin = 10          # Forecast output interval
+int1hr = 60/10
+
 
 damage_files = '' #['/scratch/skinnerp/2018_newse_post/damage_files/extractDamage_new/extractDamagePolys'] #['/Volumes/fast_scr/pythonletkf/vortex_se/2013-11-17/shapefiles/extractDamage_11-17/extractDamagePaths']
 
 #################################### User-Defined Variables:  #####################################################
 
-domain          = 'full'        #vestigial variable that's still needed in the plotting subroutines ... 
+domain          = 'full'        #vestigial variable that's still needed in the plotting subroutines ...
 edge            = 7 		#number of grid points to remove from near domain boundaries
 thin		= 6		#thinning factor for quiver values (e.g. 6 means slice every 6th grid point)
 
@@ -96,34 +99,34 @@ uh_2to5_thresh             = 60.                #60 m^2/s^2
 if (name == 'wz_0to2'):
    var_label       = '0-2 km Vertical Vort.'
    var_units       = 's$^{-1}$'
-elif (name == 'uh_0to2'): 
+elif (name == 'uh_0to2'):
    var_label       = '0-2 km Updraft Hel.'
    var_units       = 'm$^{2}$ s$^{-2}$'
-elif (name == 'uh_2to5'): 
+elif (name == 'uh_2to5'):
    var_label       = '2-5 km Updraft Hel.'
    var_units       = 'm$^{2}$ s$^{-2}$'
-elif (name == 'rain'): 
+elif (name == 'rain'):
    var_label       = 'Accumulated Rainfall'
    var_units       = 'inches'
-elif (name == 'rain_sat'): 
+elif (name == 'rain_sat'):
    var_label       = 'Accumulated Rainfall on Sat. Soil'
    var_units       = 'inches'
-elif (name == 'soil_moisture'): 
+elif (name == 'soil_moisture'):
    var_label       = 'Top Layer Soil Moisture'
    var_units       = '%'
-elif (name == 'hail'): 
+elif (name == 'hail'):
    var_label       = 'Maximum Hail Diameter at Sfc.'
    var_units       = 'inches'
 elif (name == 'hailcast'):
    var_label       = 'Maximum Hail Diameter at Sfc.'
    var_units       = 'inches'
-elif (name == 'ws_80'): 
+elif (name == 'ws_80'):
    var_label    = 'Max 10 m Gust'
    var_units    = 'kts'
-elif (name == 'comp_dz'): 
+elif (name == 'comp_dz'):
    var_label    = 'Simulated Composite Reflectivity'
    var_units    = 'dBZ'
-elif (name == 'w_up'): 
+elif (name == 'w_up'):
    var_label    = 'Max Updraft'
    var_units    = 'm s$^{-1}$'
 
@@ -145,7 +148,7 @@ dz_levels_nws           = np.arange(20.0,80.,5.)                #(dBZ)
 wup_levels              = np.arange(3.,42.,3.)
 hail_levels             = np.arange(0.5,3.75,0.25)
 
-pmm_dz_levels           = [35., 50.]                            #(dBZ) 
+pmm_dz_levels           = [35., 50.]                            #(dBZ)
 pmm_dz_colors_gray      = [cb_colors.gray8, cb_colors.gray8]    #gray contours
 
 #################################### Initialize plot attributes using 'web plot' objects:  #####################################################
@@ -203,8 +206,8 @@ elif (name == 'w_up'):
    base_plot.var1_levels = wup_levels
 elif (name == 'ws_80'):
    base_plot.var1_levels = ws_levels_kts
-   base_plot.cmap = cb_colors.wind_cmap  
-   base_plot.over_color = cb_colors.red8 
+   base_plot.cmap = cb_colors.wind_cmap
+   base_plot.over_color = cb_colors.red8
 elif (name == 'comp_dz'):
    base_plot.var1_levels = dz_levels_nws
    base_plot.var2_tcolor = 'none'
@@ -268,13 +271,13 @@ valid_min = infile[-5:-3]
 if ((int(valid_hour) < 12) and (int(init_hour) > 18)):
    temp_day = int(day) + 1
    valid_day = str(temp_day)
-   if (len(valid_day) == 1): 
+   if (len(valid_day) == 1):
       valid_day = '0' + valid_day
-else: 
+else:
    valid_day = day
 
-init_label = 'Init: ' + year + '-' + month + '-' + day + ', ' + init_hour + init_min + ' UTC'      
-valid_label = 'Valid: ' + year + '-' + month + '-' + valid_day + ', ' + valid_hour + valid_min + ' UTC'      
+init_label = 'Init: ' + year + '-' + month + '-' + day + ', ' + init_hour + init_min + ' UTC'
+valid_label = 'Valid: ' + year + '-' + month + '-' + valid_day + ', ' + valid_hour + valid_min + ' UTC'
 
 ######################### Set domain: ####################################
 
@@ -297,7 +300,7 @@ pmm_dz = fin.variables["comp_dz_pmm"][edge:-edge,edge:-edge]
 
 print 'basemap part'
 
-#Load pickled basemap instance for faster plotting: 
+#Load pickled basemap instance for faster plotting:
 
 fig, ax1, ax2, ax3 = create_fig_nomap()
 
@@ -316,9 +319,10 @@ x, y = map(xlon[:], xlat[:])
 
 print 'plot part'
 
-### 
+tintv = tintvmin
+###
 
-if (name == 'wz_0to2'): 
+if (name == 'wz_0to2'):
    var_90 = fin.variables["wz_0to2_90"][edge:-edge,edge:-edge]
    var_max = fin.variables["wz_0to2_max"][edge:-edge,edge:-edge]
    var_9km = fin.variables["wz_0to2_prob_9km"][edge:-edge,edge:-edge]
@@ -327,28 +331,28 @@ if (name == 'wz_0to2'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_9km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(wz_0to2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(wz_0to2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(wz_0to2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["wz_0to2_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["wz_0to2_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["wz_0to2_prob_9km_hourly"][edge:-edge,edge:-edge]
@@ -357,26 +361,26 @@ if (name == 'wz_0to2'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
-   
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
-   
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+
       prob_plot.name = name + '_prob_9km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(wz_0to2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(wz_0to2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(wz_0to2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -389,28 +393,28 @@ if (name == 'uh_0to2'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_9km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_0to2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_0to2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_0to2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["uh_0to2_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["uh_0to2_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["uh_0to2_prob_9km_hourly"][edge:-edge,edge:-edge]
@@ -419,26 +423,26 @@ if (name == 'uh_0to2'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_9km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_0to2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_0to2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_0to2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -448,31 +452,31 @@ if (name == 'uh_2to5'):
    var_9km = fin.variables["uh_2to5_prob_9km"][edge:-edge,edge:-edge]
    var_15km = fin.variables["uh_2to5_prob_15km"][edge:-edge,edge:-edge]
    var_27km = fin.variables["uh_2to5_prob_27km"][edge:-edge,edge:-edge]
-   
+
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_9km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_2to5_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_2to5_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_2to5_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["uh_2to5_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["uh_2to5_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["uh_2to5_prob_9km_hourly"][edge:-edge,edge:-edge]
@@ -481,26 +485,26 @@ if (name == 'uh_2to5'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_9km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_2to5_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_2to5_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(uh_2to5_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -513,28 +517,28 @@ if (name == 'comp_dz'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_3km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(comp_dz_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(comp_dz_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(comp_dz_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["comp_dz_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["comp_dz_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["comp_dz_prob_3km_hourly"][edge:-edge,edge:-edge]
@@ -543,26 +547,26 @@ if (name == 'comp_dz'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_3km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(comp_dz_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(comp_dz_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(comp_dz_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -579,26 +583,26 @@ if (name == 'rain'):
 
    rain_plot.name = name + '_90'
    rain_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    rain_plot.name = name + '_max'
    rain_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_3km_half'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km_half'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km_half'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    var_9km = fin.variables["rain_one_prob_3km"][edge:-edge,edge:-edge]
    var_15km = fin.variables["rain_one_prob_15km"][edge:-edge,edge:-edge]
@@ -607,17 +611,17 @@ if (name == 'rain'):
    prob_plot.name = name + '_prob_3km_one'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km_one'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km_one'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    var_9km = fin.variables["rain_two_prob_3km"][edge:-edge,edge:-edge]
    var_15km = fin.variables["rain_two_prob_15km"][edge:-edge,edge:-edge]
@@ -626,19 +630,19 @@ if (name == 'rain'):
    prob_plot.name = name + '_prob_3km_two'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km_two'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km_two'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["rain_90_hourly"][edge:-edge,edge:-edge]
       var_90 = np.where(var_90 <= 0.01, -1., var_90)   #hack to not contour 0.00 inches of rain
 
@@ -651,26 +655,26 @@ if (name == 'rain'):
 
       rain_plot.name = name + '_90_hourly'
       rain_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       rain_plot.name = name + '_max_hourly'
       rain_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_3km_half_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_half_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_half_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       var_9km = fin.variables["rain_one_prob_3km_hourly"][edge:-edge,edge:-edge]
       var_15km = fin.variables["rain_one_prob_15km_hourly"][edge:-edge,edge:-edge]
@@ -679,17 +683,17 @@ if (name == 'rain'):
       prob_plot.name = name + '_prob_3km_one_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_one_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_one_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       var_9km = fin.variables["rain_two_prob_3km_hourly"][edge:-edge,edge:-edge]
       var_15km = fin.variables["rain_two_prob_15km_hourly"][edge:-edge,edge:-edge]
@@ -698,17 +702,17 @@ if (name == 'rain'):
       prob_plot.name = name + '_prob_3km_two_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_two_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_two_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -725,26 +729,26 @@ if (name == 'rain_sat'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_3km_half'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km_half'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km_half'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    var_9km = fin.variables["rain_sat_one_prob_3km"][edge:-edge,edge:-edge]
    var_15km = fin.variables["rain_sat_one_prob_15km"][edge:-edge,edge:-edge]
@@ -753,17 +757,17 @@ if (name == 'rain_sat'):
    prob_plot.name = name + '_prob_3km_one'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km_one'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km_one'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    var_9km = fin.variables["rain_sat_two_prob_3km"][edge:-edge,edge:-edge]
    var_15km = fin.variables["rain_sat_two_prob_15km"][edge:-edge,edge:-edge]
@@ -772,19 +776,19 @@ if (name == 'rain_sat'):
    prob_plot.name = name + '_prob_3km_two'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km_two'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km_two'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["rain_sat_90_hourly"][edge:-edge,edge:-edge]
       var_90 = np.where(var_90 <= 0.01, -1., var_90)   #hack to not contour 0.00 inches of rain
 
@@ -797,26 +801,26 @@ if (name == 'rain_sat'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_3km_half_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_half_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_half_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_1_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       var_9km = fin.variables["rain_sat_one_prob_3km_hourly"][edge:-edge,edge:-edge]
       var_15km = fin.variables["rain_sat_one_prob_15km_hourly"][edge:-edge,edge:-edge]
@@ -825,17 +829,17 @@ if (name == 'rain_sat'):
       prob_plot.name = name + '_prob_3km_one_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_one_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_one_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_2_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       var_9km = fin.variables["rain_sat_two_prob_3km_hourly"][edge:-edge,edge:-edge]
       var_15km = fin.variables["rain_sat_two_prob_15km_hourly"][edge:-edge,edge:-edge]
@@ -844,17 +848,17 @@ if (name == 'rain_sat'):
       prob_plot.name = name + '_prob_3km_two_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_two_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_two_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(rain_3_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -867,28 +871,28 @@ if (name == 'w_up'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_9km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(w_up_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(w_up_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(w_up_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["w_up_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["w_up_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["w_up_prob_9km_hourly"][edge:-edge,edge:-edge]
@@ -897,26 +901,26 @@ if (name == 'w_up'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_9km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(w_up_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(w_up_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(w_up_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -929,28 +933,28 @@ if (name == 'ws_80'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_9km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(ws_80_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(ws_80_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(ws_80_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["ws_80_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["ws_80_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["ws_80_prob_9km_hourly"][edge:-edge,edge:-edge]
@@ -959,26 +963,26 @@ if (name == 'ws_80'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_9km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(ws_80_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(ws_80_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(ws_80_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -991,28 +995,28 @@ if (name == 'hail'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_9km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["hail_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["hail_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["hail_prob_9km_hourly"][edge:-edge,edge:-edge]
@@ -1021,26 +1025,26 @@ if (name == 'hail'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_9km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 
@@ -1053,28 +1057,28 @@ if (name == 'hailcast'):
 
    base_plot.name = name + '_90'
    base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    base_plot.name = name + '_max'
    base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False', showmax='True')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False', showmax='True')
 
    prob_plot.name = name + '_prob_9km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_15km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
    prob_plot.name = name + '_prob_27km'
    prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
    prob_plot.var1_title = prob_plot.var1_title + var_units
-   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintv, 0, spec='False', quiv='False')
 
-   if ((t > 0) and ((t % 12) == 0)):
+   if ((t > 0) and ((t % int1hr) == 0)):
       var_90 = fin.variables["hailcast_90_hourly"][edge:-edge,edge:-edge]
       var_max = fin.variables["hailcast_max_hourly"][edge:-edge,edge:-edge]
       var_9km = fin.variables["hailcast_prob_9km_hourly"][edge:-edge,edge:-edge]
@@ -1083,26 +1087,26 @@ if (name == 'hailcast'):
 
       base_plot.name = name + '_90_hourly'
       base_plot.var1_title = 'Ens. 90th Percentile Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_90[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       base_plot.name = name + '_max_hourly'
       base_plot.var1_title = 'Ens. Max Value of ' + var_label +  ' (' + var_units + ')'
-      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_max[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False', showmax='True')
 
       prob_plot.name = name + '_prob_9km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_9km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_15km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_15km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
       prob_plot.name = name + '_prob_27km_hourly'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % str(hail_thresh)
       prob_plot.var1_title = prob_plot.var1_title + var_units
-      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/12), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
+      env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_27km[:,:], pmm_dz[:,:], (t/int1hr), init_label, valid_label, domain, outdir, '', '', '', 1, 0, spec='False', quiv='False')
 
 ###
 

@@ -48,14 +48,14 @@ else:
    t = options.t
    nt = options.nt
 
-#path to pickled map instance for plotting: 
+#path to pickled map instance for plotting:
 #mapname = '/scratch2/patrick.skinner/images/map.pickle'
 
 #################################### User-Defined Variables:  #####################################################
 
-newse_dz_thresh            = 45.002             
+newse_dz_thresh            = 45.002
 
-########## 99.95th percentile thresholds for NEWS-e 2017 cases: 
+########## 99.95th percentile thresholds for NEWS-e 2017 cases:
 
 uh_0to2_thresh             = 14.217
 uh_2to5_thresh             = 65.790
@@ -65,10 +65,10 @@ area_thresh_dz             = 12.           #Minimum area of reflectivity object
 cont_thresh                = 2             #Must be greater than this number of forecast timesteps in a rotation object to be retained
 
 swath_window               = 3             #+- 3 timesteps for swaths
-domain                     = 'full'        #vestigial variable that's still needed in the plotting subroutines ... 
+domain                     = 'full'        #vestigial variable that's still needed in the plotting subroutines ...
 edge                       = 7          #number of grid points to remove from near domain boundaries
 
-neighborhood               = 15                 #15 gridpoint radius for probability matched mean 
+neighborhood               = 15                 #15 gridpoint radius for probability matched mean
 
 plot_alpha                 = 0.55                #transparency value for filled contour plots
 
@@ -128,15 +128,15 @@ dz_paint_plot = v_plot('dz_paint',                   \
 
 ############################ Find WRFOUT files to process: #################################
 
-### Find if enough forecast timesteps are available to create a rotation track ### 
+### Find if enough forecast timesteps are available to create a rotation track ###
 
-if ((t < swath_window) or (t > (nt - (swath_window+1)))): 
+if ((t < swath_window) or (t > (nt - (swath_window+1)))):
    blank = 'True'
    print( t, blank)
-else: 
+else:
    blank = 'False'
 
-### Find ENS Summary files ### 
+### Find ENS Summary files ###
 
 ne = 18
 
@@ -212,7 +212,7 @@ comp_dz                            = fin.variables["comp_dz"][:,edge:-edge,edge:
 fin.close()
 del fin
 
-if (blank == 'False'): 
+if (blank == 'False'):
    for tt in range(t-swath_window, t+swath_window+1):
       ens_file = ens_files[tt]
 
@@ -246,12 +246,12 @@ if (blank == 'False'):
 
 ###
 
-radmask = comp_dz[0,:,:] * 0. #dummy variable (will be used when MRMS obs are included) 
+radmask = comp_dz[0,:,:] * 0. #dummy variable (will be used when MRMS obs are included)
 
-if (blank == 'False'): 
+if (blank == 'False'):
    uh_2to5_obj = find_objects_swath(uh_2to5, uh_2to5_indices, radmask, uh_2to5_thresh, area_thresh_uh, cont_thresh)
    uh_0to2_obj = find_objects_swath(uh_0to2, uh_0to2_indices, radmask, uh_0to2_thresh, area_thresh_uh, cont_thresh)
-else: 
+else:
    uh_2to5_obj = comp_dz * 0. #set to zeros if in swaths can't be calculated
    uh_0to2_obj = comp_dz * 0. #set to zeros if in swaths can't be calculated
 
@@ -272,11 +272,12 @@ xx, yy = map.makegrid(xlat.shape[1], xlat.shape[0], returnxy=True)[2:4]   #equid
 
 print( 'plot part')
 
-aws_qc = xlat * 0.   ### set aws_qc to 0 since not plotting verification 
+aws_qc = xlat * 0.   ### set aws_qc to 0 since not plotting verification
 
+tintvmin = 10
 ### Plot dz objects:
 print( 't is:  ', t )
-paintqc_plot(map, fig, ax1, ax2, ax3, x, y, x, y, dz_paint_plot, aws_qc, comp_dz_obj, radmask, t, init_label, valid_label, domain, outdir, 5, 0, blank='False')
+paintqc_plot(map, fig, ax1, ax2, ax3, x, y, x, y, dz_paint_plot, aws_qc, comp_dz_obj, radmask, t, init_label, valid_label, domain, outdir, tintvmin, 0, blank='False')
 
 ###########################################################################################################
 ### make new figure for each paint plot ... can't figure out how to remove each members plot from basemap
@@ -286,16 +287,16 @@ print( 'basemap part, part 2 - the basemappening')
 
 map2, fig2, ax21, ax22, ax23 = create_fig(sw_lat_full, sw_lon_full, ne_lat_full, ne_lon_full, true_lat_1, true_lat_2, cen_lat, stand_lon, damage_files, resolution, area_thresh)
 
-### Plot uh2to5 objects: 
+### Plot uh2to5 objects:
 
-paintqc_plot(map2, fig2, ax21, ax22, ax23, x, y, x, y, uh2to5_paint_plot, aws_qc, uh_2to5_obj, radmask, t, init_label, valid_label, domain, outdir, 5, 0, blank)
+paintqc_plot(map2, fig2, ax21, ax22, ax23, x, y, x, y, uh2to5_paint_plot, aws_qc, uh_2to5_obj, radmask, t, init_label, valid_label, domain, outdir,tintvmin, 0, blank)
 
 print( 'basemap part, part 3 - So very tired ...')
 
 map3, fig3, ax31, ax32, ax33 = create_fig(sw_lat_full, sw_lon_full, ne_lat_full, ne_lon_full, true_lat_1, true_lat_2, cen_lat, stand_lon, damage_files, resolution, area_thresh)
 
-### Plot uh0to2 objects: 
+### Plot uh0to2 objects:
 
-paintqc_plot(map3, fig3, ax31, ax32, ax33, x, y, x, y, uh0to2_paint_plot, aws_qc, uh_0to2_obj, radmask, t, init_label, valid_label, domain, outdir, 5, 0, blank)
+paintqc_plot(map3, fig3, ax31, ax32, ax33, x, y, x, y, uh0to2_paint_plot, aws_qc, uh_0to2_obj, radmask, t, init_label, valid_label, domain, outdir, tintvmin, 0, blank)
 
 

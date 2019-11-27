@@ -48,8 +48,8 @@ else:
 pool = Pool(processes=(24))              # set up a queue to run
 
 ######### Check to see if all forecasts from all members are present: #########
-print 'SOMETHING!!!!!'
-ne = 4
+#print 'SOMETHING!!!!!'
+ne = 40
 member_dirs = []
 
 while (len(member_dirs) < ne):         #wait for all members to be running
@@ -82,9 +82,10 @@ for n in range(0, len(member_dirs)):
 
   member_files = []
   temp_files = os.listdir(temp_dir)
-  temp_outdir = outdir+'/mem_'+'{:>03d}'.format(n+1)
+  temp_outdir = os.path.join(temp_dir,'summary')  #outdir+'/mem_'+'{:>03d}'.format(n+1)
   if not os.path.exists(temp_outdir):
     os.mkdir(temp_outdir)
+
   for f, file in enumerate(temp_files):
      if (file[0:14] == 'fv3_history.nc'):                               #assumes filename format of: "wrfout_d02_yyyy-mm-dd_hh:mm:ss
         member_files.append(file)

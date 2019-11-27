@@ -49,7 +49,8 @@ else:
 
 pool = Pool(processes=(24))              # set up a queue to run
 
-variables = ['uh_2to5', 'uh_0to2', 'wz_0to2', 'comp_dz', 'ws_80', 'w_up'] #, 'hail', 'hailcast']
+variables = ['uh_2to5', 'uh_0to2', 'wz_0to2', 'comp_dz', 'w_up'] #, 'hail', 'hailcast']
+#variables = ['uh_2to5', 'uh_0to2', 'wz_0to2', 'comp_dz', 'ws_80', 'w_up'] #, 'hail', 'hailcast']
 #variables = ['uh_2to5', 'uh_0to2', 'wz_0to2', 'comp_dz', 'rain', 'ws_80', 'w_up', 'hail', 'hailcast']
 #variables = ['multi', 'uh_2to5', 'uh_0to2', 'wz_0to2', 'comp_dz', 'rain', 'ws_80', 'w_up', 'hail', 'hailcast']
 

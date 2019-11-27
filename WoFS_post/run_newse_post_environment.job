@@ -11,21 +11,23 @@
 
 set echo
 
+set base_dir = /oldscratch/ywang/EPIC/Program/WoFS_post
+
 # cd to directory where job was submitted from
-cd /oldscratch/larissa.reames/fv3sar_post
+cd ${base_dir}
 
 #$SLURM_SUBMIT_DIR
 
 setenv MALLOC_MMAP_MAX 0
 setenv MALLOC_TRIM_THRESHOLD 536870912
+set PYTHON = /scratch/software/Odin/python/anaconda2/bin/python
+setenv PATH /scratch/software/Odin/python/anaconda2/bin:$PATH
 
-# User defined variables: 
+# User defined variables:
 
-set date = 20180501
-set base_dir = /oldscratch/larissa.reames/fv3sar_post/
+set date = 20190520
 
-set fcst_base = /oldscratch/larissa.reames/fv3sar_post/wrf_lookalikes/
-#set fcst_base = /scratch/jtti/realtime/FCST/
+set fcst_base = /scratch/ywang/EPIC/test_runs
 
 #set times = (2000)
 #set nt = (72)
@@ -39,58 +41,34 @@ set fcst_base = /oldscratch/larissa.reames/fv3sar_post/wrf_lookalikes/
 #set times = (1900 2000 2100 2200 2300 0000)
 #set nt = (72 60 48 36 24 12)
 
-set times = (2100)
-set nt = (48)
+set times = (18)
+set nt = (37)
 
-# Build directories needed: 
+# Build directories needed:
 
-set fcst = $fcst_base$date"_NOTENDLIM_DT30_DIFFSPLIT/"
-
-set summary_base = "/oldscratch/larissa.reames/fv3sar_post/summary"
-if ( ! -d $summary_base) then
-  mkdir $summary_base
-endif
-
-set summary = $summary_base"/"$date"_NOTENDLIM_DT30_DIFFSPLIT/" 
-if ( ! -d $summary) then
-  mkdir $summary
-endif
-
-set flagdir = $base_dir"flags/"$date"/"
-
-if ( ! -d $flagdir) then
-  mkdir $flagdir
-endif
-
-# Run wrapper script for forecast: 
+# Run wrapper script for forecast:
 
 sleep 1
 
 set i = 1
 
 foreach dir ($times)
-   set fcstdir = $fcst$dir"/"
-   set flagfile = $flagdir"/"$dir"_env.txt"
-   set tempsumdir = $summary$dir"/"
-   
-   if ( ! -d $tempsumdir) then
-		 mkdir $tempsumdir
-	 endif
+   set fcstdir = "${fcst_base}/$date$dir"
+   #set flagfile = $flagdir"/"$dir"_ens.txt"
+   set tempsumdir = "${fcst_base}/$date$dir"
 
-   echo $fcstdir
-   echo $flagfile
-   echo $tempsumdir
 
    set tempnt = $nt[$i]
    echo $tempnt
 
    if ( -d $fcstdir ) then
-      if ( ! -e $flagfile ) then
-         /home/kimberly.hoogewind/miniconda3/envs/py3/bin/python wrapper_post_env.py -d $fcstdir -o $tempsumdir -e $tempnt 
-         touch $flagfile 
+      #if ( ! -e $flagfile ) then
+         #/home/kimberly.hoogewind/miniconda3/envs/py3/bin/python wrapper_post_env.py -d $fcstdir -o $tempsumdir -e $tempnt
+         $PYTHON  wrapper_post_env.py -d $fcstdir -o $tempsumdir -e $tempnt
+         #touch $flagfile
          #exit(0)
-      endif
-   endif 
+      #endif
+   endif
    @ i++
 end
 

@@ -51,11 +51,10 @@ else:
 #################################### Get input file:  #####################################################
 
 summary_files_temp = os.listdir(summary_dir)
-timestep = str(t) 
-if (len(timestep) == 1): 
-   timestep = '0' + timestep
+timestep = "%02d"%(t-1)
 
 for f, file in enumerate(summary_files_temp):
+   print f, file,file[-28:-25],file[-24:-22], timestep
    if ((file[-28:-25] == 'SUM') and (file[-24:-22] == timestep)):                               #assumes filename format of: news-e_ENS_20170516_2200_0000.nc
       infile = os.path.join(summary_dir, file)
 
@@ -70,7 +69,7 @@ damage_files = '' #['/scratch/skinnerp/2018_newse_post/damage_files/extractDamag
 
 #################################### User-Defined Variables:  #####################################################
 
-domain          = 'full'        #vestigial variable that's still needed in the plotting subroutines ... 
+domain          = 'full'        #vestigial variable that's still needed in the plotting subroutines ...
 edge            = 7 		#number of grid points to remove from near domain boundaries
 thin		= 6		#thinning factor for quiver values (e.g. 6 means slice every 6th grid point)
 
@@ -95,34 +94,34 @@ perc                       = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]       
 if (name == 'wz_0to2'):
    var_label       = '0-2 km Vertical Vort.'
    var_units       = 's$^{-1}$'
-elif (name == 'uh_0to2'): 
+elif (name == 'uh_0to2'):
    var_label       = '0-2 km Updraft Hel.'
    var_units       = 'm$^{2}$ s$^{-2}$'
-elif (name == 'uh_2to5'): 
+elif (name == 'uh_2to5'):
    var_label       = '2-5 km Updraft Hel.'
    var_units       = 'm$^{2}$ s$^{-2}$'
-elif (name == 'rain'): 
+elif (name == 'rain'):
    var_label       = 'Accumulated Rainfall'
    var_units       = 'inches'
-elif (name == 'rain_sat'): 
+elif (name == 'rain_sat'):
    var_label       = 'Accumulated Rainfall on Sat. Soil'
    var_units       = 'inches'
-elif (name == 'soil_moisture'): 
+elif (name == 'soil_moisture'):
    var_label       = 'Top Layer Soil Moisture'
    var_units       = '%'
-elif (name == 'hail'): 
+elif (name == 'hail'):
    var_label       = 'Maximum Hail Diameter at Sfc.'
    var_units       = 'inches'
 elif (name == 'hailcast'):
    var_label       = 'Maximum Hail Diameter at Sfc.'
    var_units       = 'inches'
-elif (name == 'ws_80'): 
+elif (name == 'ws_80'):
    var_label    = 'Max 10 m Gust'
    var_units    = 'kts'
-elif (name == 'comp_dz'): 
+elif (name == 'comp_dz'):
    var_label    = 'Simulated Composite Reflectivity'
    var_units    = 'dBZ'
-elif (name == 'w_up'): 
+elif (name == 'w_up'):
    var_label    = 'Max Updraft'
    var_units    = 'm s$^{-1}$'
 
@@ -143,7 +142,7 @@ dz_levels_nws           = np.arange(20.0,80.,5.)                #(dBZ)
 wup_levels              = np.arange(3.,42.,3.)
 hail_levels             = np.arange(0.5,3.75,0.25)
 
-pmm_dz_levels           = [35., 50.]                            #(dBZ) 
+pmm_dz_levels           = [35., 50.]                            #(dBZ)
 pmm_dz_colors_gray      = [cb_colors.gray8, cb_colors.gray8]    #gray contours
 
 #################################### Initialize plot attributes using 'web plot' objects:  #####################################################
@@ -201,8 +200,8 @@ elif (name == 'w_up'):
    base_plot.var1_levels = wup_levels
 elif (name == 'ws_80'):
    base_plot.var1_levels = ws_levels_kts
-   base_plot.cmap = cb_colors.wind_cmap  
-   base_plot.over_color = cb_colors.orange8 
+   base_plot.cmap = cb_colors.wind_cmap
+   base_plot.over_color = cb_colors.orange8
 elif (name == 'comp_dz'):
    base_plot.var1_levels = dz_levels_nws
    base_plot.var2_tcolor = 'none'
@@ -266,13 +265,13 @@ valid_min = infile[-5:-3]
 if ((int(valid_hour) < 12) and (int(init_hour) > 18)):
    temp_day = int(day) + 1
    valid_day = str(temp_day)
-   if (len(day) == 1): 
+   if (len(day) == 1):
       valid_day = '0' + valid_day
-else: 
+else:
    valid_day = day
 
-init_label = 'Init: ' + year + '-' + month + '-' + day + ', ' + init_hour + init_min + ' UTC'      
-valid_label = 'Valid: ' + year + '-' + month + '-' + valid_day + ', ' + valid_hour + valid_min + ' UTC'      
+init_label = 'Init: ' + year + '-' + month + '-' + day + ', ' + init_hour + init_min + ' UTC'
+valid_label = 'Valid: ' + year + '-' + month + '-' + valid_day + ', ' + valid_hour + valid_min + ' UTC'
 
 ######################### Set domain: ####################################
 
@@ -295,7 +294,7 @@ pmm_dz = fin.variables["comp_dz_pmm"][edge:-edge,edge:-edge]
 
 print 'basemap part'
 
-#Load pickled basemap instance for faster plotting: 
+#Load pickled basemap instance for faster plotting:
 
 fig, ax1, ax2, ax3 = create_fig_nomap()
 
@@ -314,22 +313,22 @@ x, y = map(xlon[:], xlat[:])
 
 print 'plot part'
 
-### 
+###
 
-if (name == 'wz_0to2'): 
-   thresh = wz_0to2_thresh 
+if (name == 'wz_0to2'):
+   thresh = wz_0to2_thresh
    var_perc = fin.variables["wz_0to2_perc"][:,edge:-edge,edge:-edge]
    var_prob = fin.variables["wz_0to2_prob"][:,edge:-edge,edge:-edge]
    var_pmm = fin.variables["wz_0to2_pmm"][edge:-edge,edge:-edge]
 
-   for p in range(0, var_perc.shape[0]): 
+   for p in range(0, var_perc.shape[0]):
       percentile = str(perc[p])
       base_plot.name = name + '_perc_sum'
       base_plot.var1_title = 'Ens. %sth Percentile Value of ' % percentile
       base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
       env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_perc[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 10, 0, spec='False', quiv='False', showmax='True')
 
-   for p in range(0, var_prob.shape[0]): 
+   for p in range(0, var_prob.shape[0]):
       threshold = str(thresh[p])
       prob_plot.name = name + '_prob_sum'
       prob_plot.var1_title = 'Probability of ' + var_label + ' > %s ' % threshold
@@ -337,8 +336,8 @@ if (name == 'wz_0to2'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean' 
-   base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')' 
+   base_plot.var1_title = 'Probability Matched Mean'
+   base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
 ###
@@ -364,7 +363,7 @@ if (name == 'uh_0to2'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -391,7 +390,7 @@ if (name == 'uh_2to5'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -418,7 +417,7 @@ if (name == 'comp_dz'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -447,7 +446,7 @@ if (name == 'rain'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    rain_plot.name = name + '_pmm_sum'
-   rain_plot.var1_title = 'Probability Matched Mean'   
+   rain_plot.var1_title = 'Probability Matched Mean'
    rain_plot.var1_title = rain_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot_rain(map, fig, ax1, ax2, ax3, x, y, rain_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -460,7 +459,7 @@ if (name == 'rain_sat'):
    var_prob = fin.variables["rain_sat_prob"][:,edge:-edge,edge:-edge]
    var_pmm = fin.variables["rain_sat_pmm"][edge:-edge,edge:-edge]
    var_pmm = np.where(var_pmm <= 0.01, -1., var_pmm)   #hack to not contour 0.00 inches of rain
-   
+
    for p in range(0, var_perc.shape[0]):
       percentile = str(perc[p])
       base_plot.name = name + '_perc_sum'
@@ -476,7 +475,7 @@ if (name == 'rain_sat'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -487,7 +486,7 @@ if (name == 'soil_moisture'):
    var_perc = fin.variables["soil_moisture_perc"][:,edge:-edge,edge:-edge]
    var_prob = fin.variables["soil_moisture_prob"][:,edge:-edge,edge:-edge]
    var_pmm = fin.variables["soil_moisture_pmm"][edge:-edge,edge:-edge]
-   
+
    for p in range(0, var_perc.shape[0]):
       percentile = str(perc[p])
       base_plot.name = name + '_perc_sum'
@@ -503,7 +502,7 @@ if (name == 'soil_moisture'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -514,7 +513,7 @@ if (name == 'ws_80'):
    var_perc = fin.variables["ws_80_perc"][:,edge:-edge,edge:-edge]
    var_prob = fin.variables["ws_80_prob"][:,edge:-edge,edge:-edge]
    var_pmm = fin.variables["ws_80_pmm"][edge:-edge,edge:-edge]
-   
+
    for p in range(0, var_perc.shape[0]):
       percentile = str(perc[p])
       base_plot.name = name + '_perc_sum'
@@ -530,7 +529,7 @@ if (name == 'ws_80'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -541,7 +540,7 @@ if (name == 'w_up'):
    var_perc = fin.variables["w_up_perc"][:,edge:-edge,edge:-edge]
    var_prob = fin.variables["w_up_prob"][:,edge:-edge,edge:-edge]
    var_pmm = fin.variables["w_up_pmm"][edge:-edge,edge:-edge]
-   
+
    for p in range(0, var_perc.shape[0]):
       percentile = str(perc[p])
       base_plot.name = name + '_perc_sum'
@@ -557,7 +556,7 @@ if (name == 'w_up'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -568,7 +567,7 @@ if (name == 'hail'):
    var_perc = fin.variables["hail_perc"][:,edge:-edge,edge:-edge]
    var_prob = fin.variables["hail_prob"][:,edge:-edge,edge:-edge]
    var_pmm = fin.variables["hail_pmm"][edge:-edge,edge:-edge]
-   
+
    for p in range(0, var_perc.shape[0]):
       percentile = str(perc[p])
       base_plot.name = name + '_perc_sum'
@@ -584,7 +583,7 @@ if (name == 'hail'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 
@@ -595,7 +594,7 @@ if (name == 'hailcast'):
    var_perc = fin.variables["hailcast_perc"][:,edge:-edge,edge:-edge]
    var_prob = fin.variables["hailcast_prob"][:,edge:-edge,edge:-edge]
    var_pmm = fin.variables["hailcast_pmm"][edge:-edge,edge:-edge]
-   
+
    for p in range(0, var_perc.shape[0]):
       percentile = str(perc[p])
       base_plot.name = name + '_perc_sum'
@@ -611,7 +610,7 @@ if (name == 'hailcast'):
       env_plot(map, fig, ax1, ax2, ax3, x, y, prob_plot, var_prob[p,:,:], pmm_dz[:,:], p, init_label, valid_label, domain, outdir, '', '', '', 1, 1, spec='False', quiv='False')
 
    base_plot.name = name + '_pmm_sum'
-   base_plot.var1_title = 'Probability Matched Mean'   
+   base_plot.var1_title = 'Probability Matched Mean'
    base_plot.var1_title = base_plot.var1_title + var_label +  ' (' + var_units + ')'
    env_plot(map, fig, ax1, ax2, ax3, x, y, base_plot, var_pmm[:,:], pmm_dz[:,:], 0, init_label, valid_label, domain, outdir, '', '', '', 0, 0, spec='False', quiv='False')
 

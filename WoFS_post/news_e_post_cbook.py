@@ -2,32 +2,32 @@
 #######################################################################################
 #news_e_post_cbook.py - written 11/2015 by Pat Skinner
 #
-#Last update:  3/2017 by Pat Skinner 
+#Last update:  3/2017 by Pat Skinner
 #
-# - Incorporated Bolton (1980) and Davies-Jones (2008) methods for calculating theta-e and 
+# - Incorporated Bolton (1980) and Davies-Jones (2008) methods for calculating theta-e and
 #   temperature along a moist adiabat (code courtesy Greg Blumberg).  Results are ~5x faster
-#   than old Wobus-method based calculations. 
+#   than old Wobus-method based calculations.
 # - Added KDTree-based method for calculating probability matched mean - did not speed up
-#   results. 
-# - Cleaned, commented, and aggregated code between different versions. 
+#   results.
+# - Cleaned, commented, and aggregated code between different versions.
 #
-#This code is a collection of subroutines used to calculate summary quantities from 
-#WRFOUT files.  
+#This code is a collection of subroutines used to calculate summary quantities from
+#WRFOUT files.
 #
 #Much of the code has been adapted from the SHARPpy library (https://github.com/sharppy/)
 #Copyright (c) 2015, Kelton Halbert, Greg Blumberg, Tim Supinie, and Patrick Marsh
 #
-#Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult". 
+#Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult".
 #Preprints, 5th Symposium on Advances in Modeling and Analysis Using Python, Phoenix AZ.
 #
 #
-#Input formats are generally assumed to be numpy arrays pulled from WRFOUT files, 
+#Input formats are generally assumed to be numpy arrays pulled from WRFOUT files,
 #so 3d arrays with a format [z,y,x]
 #
 #Output is typically 2D numpy arrays of format [y,x]
 #
 #
-#Subroutines available are: 
+#Subroutines available are:
 #
 #calc_td -> calculate dewpoint temperature
 #calc_thv -> calculate virtual temperature (or virtual potential temperature)
@@ -36,21 +36,21 @@
 #calc_the -> calculate equivalent potential temperature
 #calc_the_bolt -> calculate equivalent potential temperature according to Bolton (1980) -> FASTEST and MOST ACCURATE
 #calc_lcl -> calculate lifted condensation level
-#calc_lfc_el -> calculate level of free convection and equilibrium level 
+#calc_lfc_el -> calculate level of free convection and equilibrium level
 #wetlift_2d -> calculates moist adiabatic lapse rate (used to create a parcel temperature profile) -> 2D ARRAY
 #wetlift -> calculates moist adiabatic lapse rate (used to create a parcel temperature profile) -> SINGLE VALUE
 #dj_wetlift -> calculates temperature along moist adiabat according to Davies-Jones (2008) method -> FASTEST and MOST ACCURATE
 #calc_wobus_2d -> Wobus correction for calculating moist adiabatic lapse rate -> 2D ARRAY
 #calc_wobus -> Wobus correction for calculating moist adiabatic lapse rate -> SINGLE VALUE
-#calc_parcel -> calculates the temp and potential temp for a lifted parcel 
+#calc_parcel -> calculates the temp and potential temp for a lifted parcel
 #calc_parcel_dj -> calculates the temp for a lifted parcel according to Davies-Jones (2008) method -> FASTEST and MOST ACCURATE
 #calc_cape -> calculates convective available potential energy
 #calc_cin -> calculates convective inhibition
-#calc_height -> calculates height (MSL) and vertical grid spacing 
+#calc_height -> calculates height (MSL) and vertical grid spacing
 #find_upper_lower -> finds indices above and below specified values
 #calc_interp -> interpolates values between upper and lower grid points
-#calc_mean_wind -> calculates mean u and v components of the wind in specified layer 
-#calc_wind_shear -> calculates u and v components of the wind shear in specified layer 
+#calc_mean_wind -> calculates mean u and v components of the wind in specified layer
+#calc_wind_shear -> calculates u and v components of the wind shear in specified layer
 #calc_bunkers -> calculates Bunkers storm motion (u and v components for right and left movers)
 #calc_srh -> calculates storm-relative helicity in a layer
 #calc_stp -> calculates significant tornado parameter
@@ -62,12 +62,12 @@
 #calc_prob -> calculates gridpoint probability of exceedance for a 3d variable
 #get_local_maxima2d -> runs a maximum value filter over a 2d array
 #gauss_kern -> creates a Gaussian convolution kernel for smoothing
-#gridpoint_interp -> interpolates a 2d array to a specific point within grid 
+#gridpoint_interp -> interpolates a 2d array to a specific point within grid
 #
-#Future needs: 
+#Future needs:
 #
-#Most layer-dependent values are calculated for levels within the layer, include interpolation 
-#to upper and lower bounds in the future. 
+#Most layer-dependent values are calculated for levels within the layer, include interpolation
+#to upper and lower bounds in the future.
 #
 #Calculate effective inflow layer (e.g. Thompson et al 2012) for calculation of summary values
 #
@@ -83,9 +83,9 @@ from scipy import signal
 from scipy import *
 from scipy import ndimage
 from scipy import spatial
-#import skimage
-#from skimage.morphology import label
-#from skimage.measure import regionprops
+import skimage
+from skimage.morphology import label
+from skimage.measure import regionprops
 
 ################  Constants ################
 
@@ -104,8 +104,8 @@ rocp = 0.28571426               #R over Cp
 ### Constants used in the Davies-Jones (2008) pseudoadiabat calculation:
 
 A = 2675.                       #temperature constant used in DJ wetlift (K)
-a = 17.67                       #temperature constant used in DJ wetlift (K) 
-b = 243.5                       #temperature constant used in DJ wetlift (K) 
+a = 17.67                       #temperature constant used in DJ wetlift (K)
+b = 243.5                       #temperature constant used in DJ wetlift (K)
 k_0 = 3036                      # K
 k_1 = 1.78                      # unitless
 k_2 = 0.448                     # unitless
@@ -120,13 +120,13 @@ def calc_td(t, p, qv):
    #Adapted from similar wrftools routine (https:https://github.com/keltonhalbert/wrftools/)
    #Copyright (c) 2015, Kelton Halbert
 
-   #Input:  
+   #Input:
 
    #t - np.ndarray of temperature (K)
    #p - np.ndarray of pressure (hPa)
    #qv - np.ndarray of water vapor mixing ratio (g/Kg)
 
-   #Returns: 
+   #Returns:
 
    #td - np.ndarray of dewpoint temperature (K)
 
@@ -147,20 +147,20 @@ def calc_td(t, p, qv):
 
 #######################################################################################
 
-def calc_thv(th, qv, qt): 
+def calc_thv(th, qv, qt):
 
    #Calculates virtual temp (or virtual potential temp) for a np.ndarray
-   
+
    #Adapted from similar wrftools routines (https:https://github.com/keltonhalbert/wrftools/)
    #Copyright (c) 2015, Kelton Halbert
 
-   #Input:  
+   #Input:
 
    #th - np.ndarray of temperature or potential temperature (K)
    #qv - np.ndarray of water vapor mixing ratio (g/Kg)
    #qt - np.ndarray of total water mixing ratio (g/Kg) (typically sum of cloud, rain, snow, ice, and graupel mixing ratios)
 
-   #Returns: 
+   #Returns:
 
    #thv - np.ndarray of virtual (potential) temperature (K)
 
@@ -176,26 +176,26 @@ def calc_thv(th, qv, qt):
 
 #######################################################################################
 
-def calc_th(t, p): 
+def calc_th(t, p):
 
    #Calculates potential temperature for a np.ndarray
-   
+
    #Adapted from similar wrftools routines (https:https://github.com/keltonhalbert/wrftools/)
    #Copyright (c) 2015, Kelton Halbert
 
-   #Input:  
+   #Input:
 
    #t - np.ndarray of temperature (K)
    #p - np.ndarray of pressure (hPa)
 
-   #Returns: 
+   #Returns:
 
    #th - np.ndarray of potential temperature (K)
 
 #######################
 
-   th = t * (p_0 / p)**(Rd / Cp) 
- 
+   th = t * (p_0 / p)**(Rd / Cp)
+
    nans = np.isnan(th)						#handle NaNs
    th[nans] = 0.
 
@@ -240,7 +240,7 @@ def calc_lcl(t, td, th, p):
    #Adapted from similar sharppy routine (https://github.com/sharppy/)
    #Copyright (c) 2015, Kelton Halbert, Greg Blumberg, Tim Supinie, and Patrick Marsh
 
-   #Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult". 
+   #Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult".
    #Preprints, 5th Symposium on Advances in Modeling and Analysis Using Python, Phoenix AZ.
 
    #Input:
@@ -259,7 +259,7 @@ def calc_lcl(t, td, th, p):
 
    ### Calc change in temp given dewpoint depression and dry adiabatic lapse rate as defined in Halpert et al. (2015):
 
-   dt_dz = (t - td) * (1.2185 + 0.001278 * t + (t - td) * (-0.00219 + 1.173e-5 * (t - td) - 0.0000052 * t))  
+   dt_dz = (t - td) * (1.2185 + 0.001278 * t + (t - td) * (-0.00219 + 1.173e-5 * (t - td) - 0.0000052 * t))
    dt_dz = np.where(dt_dz < 0., 0., dt_dz)			#cannot have an LCL underground ...
 
    lcl_t = t - dt_dz
@@ -280,11 +280,11 @@ def calc_the_bolt(p, t, qv):
    #Adapted from a similar sharppy routine (https://github.com/sharppy/) written by Gregory Blumberg
    #Copyright (c) 2015, Kelton Halbert, Greg Blumberg, Tim Supinie, and Patrick Marsh
 
-   #Blumberg, W.G., K.T. Halbert, T.A. Supinie, P.T. Marsh, R.L. Thompson, and J.A. Hart, 2017: 
-   #SHARPpy:  An open source sounding analysis toolkit for the atmospheric sciences.  Bull. Amer. 
-   #Meteor. Soc., In Press. 
+   #Blumberg, W.G., K.T. Halbert, T.A. Supinie, P.T. Marsh, R.L. Thompson, and J.A. Hart, 2017:
+   #SHARPpy:  An open source sounding analysis toolkit for the atmospheric sciences.  Bull. Amer.
+   #Meteor. Soc., In Press.
 
-   #Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult". 
+   #Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult".
    #Preprints, 5th Symposium on Advances in Modeling and Analysis Using Python, Phoenix AZ.
 
    #Input:
@@ -296,7 +296,7 @@ def calc_the_bolt(p, t, qv):
    #Returns:
 
    #th_e - 1 or 2d numpy array of equivalent potential temperature (K)
-   #t_star - 1 or 2d numpy array of the condensate temperature (LCL temp; K) 
+   #t_star - 1 or 2d numpy array of the condensate temperature (LCL temp; K)
 
 #######################
 
@@ -315,7 +315,7 @@ def calc_the_bolt(p, t, qv):
 
 def calc_wobus_2d(t):
 
-   #Polynomial approximation for the saturation vapor pressure profile of a parcel lifted moist 
+   #Polynomial approximation for the saturation vapor pressure profile of a parcel lifted moist
    #adiabatically using the technique developed by Herman Wobus
 
    #Adapted from similar sharppy routine (https://github.com/sharppy/)
@@ -411,7 +411,7 @@ def wetlift_2d(t, th, p2):
 
    th = th - t_0                #convert temps to degrees C
    t = t - t_0
-   
+
    thetam = th - calc_wobus_2d(th) + calc_wobus_2d(t)
    thetam_wobus2d = calc_wobus_2d(thetam)
    eor = th * 0 + 999
@@ -425,7 +425,7 @@ def wetlift_2d(t, th, p2):
       if (iter == 0):
          pwrp = (p2 / p_0)**(Rd / Cp)
          t1   = (thetam + t_0) * pwrp - t_0
-         
+
          ts  = t1 - 20. 	#subtract 20 for some reason
 
          pol = ts * 0.
@@ -435,7 +435,7 @@ def wetlift_2d(t, th, p2):
          pol = np.where(ts > 0., ((29.93 / np.power(1 + ts * (3.6182989e-03 + ts * (-1.3603273e-05 + ts * (4.9618922e-07 + ts * (-6.1059365e-09 + ts * (3.9401551e-11 + ts * (-1.2588129e-13 + ts * (1.6688280e-16))))))),4)) + (0.96 * ts) - 14.8), pol)
 
          e1  = pol - thetam_wobus2d
-         
+
          rate = 1.
       else:
          temp = e2 - e1
@@ -446,7 +446,7 @@ def wetlift_2d(t, th, p2):
 
       t2 = t1 - (e1 * rate)
       e2 = (t2 + t_0) / pwrp - t_0
- 
+
       ts     = t2 - 20. 	#subtract 20 for some reason
       t2_wob = ts * 0.
       t2_wob = np.where(ts <= 0., (15.13 / (np.power(1. + ts * (-8.841660499999999e-3 + ts * ( 1.4714143e-4 + ts * (-9.671989000000001e-7 + ts * (-3.2607217e-8 + ts * (-3.8598073e-10))))),4))), t2_wob)
@@ -456,12 +456,12 @@ def wetlift_2d(t, th, p2):
       e2_wob = ts * 0.
       e2_wob = np.where(ts <= 0., (15.13 / (np.power(1. + ts * (-8.841660499999999e-3 + ts * ( 1.4714143e-4 + ts * (-9.671989000000001e-7 + ts * (-3.2607217e-8 + ts * (-3.8598073e-10))))),4))), t2_wob)
       e2_wob = np.where(ts > 0., ((29.93 / np.power(1 + ts * (3.6182989e-03 + ts * (-1.3603273e-05 + ts * (4.9618922e-07 + ts * (-6.1059365e-09 + ts * (3.9401551e-11 + ts * (-1.2588129e-13 + ts * (1.6688280e-16))))))),4)) + (0.96 * ts) - 14.8), t2_wob)
-      
+
       e2 += t2_wob - e2_wob - thetam
 
       eor = e2 * rate
       iter = iter + 1
-   if (iter == 20):			#set max number of iterations to reduce slowdowns (rarely hit for 2016) 
+   if (iter == 20):			#set max number of iterations to reduce slowdowns (rarely hit for 2016)
       print( 'iter hit max: ', iter)
 
    return t2 - eor + t_0
@@ -470,7 +470,7 @@ def wetlift_2d(t, th, p2):
 
 def wetlift(t, th, p2):
 
-   #Lifts a parcel to a new level 
+   #Lifts a parcel to a new level
 
    #Adapted from similar sharppy routine (https://github.com/sharppy/)
    #Copyright (c) 2015, Kelton Halbert, Greg Blumberg, Tim Supinie, and Patrick Marsh
@@ -484,7 +484,7 @@ def wetlift(t, th, p2):
    #th - float value of potential temperature (K)
    #p2 - float value of pressure to lift parcel(s) to (hPa)
 
-   #Dependencies: 
+   #Dependencies:
 
    #calc_wobus
 
@@ -497,7 +497,7 @@ def wetlift(t, th, p2):
    th = th - t_0		#convert temps to degrees C
    t = t - t_0
 
-   thetam = th - calc_wobus(th) + calc_wobus(t) 
+   thetam = th - calc_wobus(th) + calc_wobus(t)
    eor = 999
    while ((np.fabs(eor) - 0.1) > 0):
       if eor == 999: 				#if first pass
@@ -509,7 +509,7 @@ def wetlift(t, th, p2):
          rate = (t2 - t1) / (e2 - e1)
          t1 = t2
          e1 = e2
-         
+
 
       t2 = t1 - (e1 * rate)
       e2 = (t2 + t_0) / pwrp - t_0
@@ -523,12 +523,12 @@ def wetlift(t, th, p2):
 
 def calc_the(lcl_t, lcl_p):
 
-   ##NOTE:  The Bolton (1980) method "calc_the_bolt" should be both faster and more accurate. 
+   ##NOTE:  The Bolton (1980) method "calc_the_bolt" should be both faster and more accurate.
 
-   #Calculates equivalent potential temperature for a 1 or 2d numpy array as long as the LCL temp 
+   #Calculates equivalent potential temperature for a 1 or 2d numpy array as long as the LCL temp
    #and pressure are known (equivalent to skew-T method for calculation)
 
-   #Note:  Assumes 100 hPa is a sufficient upper level 
+   #Note:  Assumes 100 hPa is a sufficient upper level
 
    #Adapted from similar sharppy routine (https://github.com/sharppy/)
    #Copyright (c) 2015, Kelton Halbert, Greg Blumberg, Tim Supinie, and Patrick Marsh
@@ -547,14 +547,14 @@ def calc_the(lcl_t, lcl_p):
 
    #Returns:
 
-   #1 or 2d numpy array of equivalent potential temperature (K) 
+   #1 or 2d numpy array of equivalent potential temperature (K)
 
 #######################
 
    lcl_th = calc_th(lcl_t, lcl_p)
    p_top = np.zeros((lcl_th.shape)) + 100.			#specify numpy array for upper bound (100 hPa)
    t_top = wetlift_2d(lcl_t, lcl_th, p_top)
-  
+
    the = calc_th(t_top, p_top)
 
    return the
@@ -564,7 +564,7 @@ def calc_the(lcl_t, lcl_p):
 
 def calc_parcel(t, th, p, base_t, base_p, lcl_t, lcl_p):
 
-   ##NOTE:  "calc_parcel_dj" should be both faster and more accurate. 
+   ##NOTE:  "calc_parcel_dj" should be both faster and more accurate.
 
    #Creates lifted parcel profiled for the domain
 
@@ -591,8 +591,8 @@ def calc_parcel(t, th, p, base_t, base_p, lcl_t, lcl_p):
 
    t_parcel = t * 0.								#initialize t/th_parcel with zeroes
    th_parcel = th * 0.
-   t_parcel[0,:,:] = base_t							#set lowest level to base_t/th 
-   th_parcel[0,:,:] = base_th 
+   t_parcel[0,:,:] = base_t							#set lowest level to base_t/th
+   th_parcel[0,:,:] = base_th
 
    lcl_diff = lcl_p - p
    masked_lcl_diff = np.ma.masked_where((lcl_diff) > 0, (lcl_diff))		#mask indices above LCL
@@ -612,14 +612,14 @@ def calc_parcel(t, th, p, base_t, base_p, lcl_t, lcl_p):
 
       t_parcel[k,:,:] = np.where((k > base_index + 1) & (k <= lower), calc_t(th_parcel[k-1,:,:], p[k,:,:]), t_parcel[k,:,:])
 
-      #### For layer that contains LCL:  Lift with constant potential temperature to LCL, then moist adiabatically 
-      ####to next pressure level above LCL: 
+      #### For layer that contains LCL:  Lift with constant potential temperature to LCL, then moist adiabatically
+      ####to next pressure level above LCL:
 
       t_temp = np.where((k > base_index + 1) & (k == (lower + 1)), calc_t(th_parcel[k-1,:,:], lcl_p), 0.)
       th_temp = calc_th(t_temp, lcl_p)
       t_parcel[k,:,:] = np.where((k > base_index + 1) & (k == (lower + 1)), wetlift_2d(t_temp, th_temp, p[k,:,:]), t_parcel[k,:,:])
 
-      #### Lift moist adiabatically above LCL: 
+      #### Lift moist adiabatically above LCL:
 
       t_parcel[k,:,:] = np.where((k > base_index + 1) & (k > (lower + 1)), wetlift_2d(t_parcel[k-1,:,:], th_parcel[k-1,:,:], p[k,:,:]), t_parcel[k,:,:])
       th_parcel[k,:,:] = calc_th(t_parcel[k,:,:], p[k,:,:])
@@ -632,7 +632,7 @@ def calc_parcel(t, th, p, base_t, base_p, lcl_t, lcl_p):
 
 def calc_parcel_dj(p, th_e_base, base_t, base_p):
 
-   #Creates lifted parcel profile for the domain via the Davies-Jones (2008) method for 
+   #Creates lifted parcel profile for the domain via the Davies-Jones (2008) method for
    #calculating moist adiabats
 
    #Dependencies:  dj_wetlift, calc_t
@@ -655,7 +655,7 @@ def calc_parcel_dj(p, th_e_base, base_t, base_p):
    t_parcel = p * 0.                                                            #initialize t/th_parcel with zeroes
    dry_parcel = p * 0.                                                            #initialize t/th_parcel with zeroes
    wet_parcel = p * 0.                                                            #initialize t/th_parcel with zeroes
-   t_parcel[0,:,:] = base_t                                                     #set lowest level to base_t/th 
+   t_parcel[0,:,:] = base_t                                                     #set lowest level to base_t/th
 
    p_diff = base_p - p
    masked_p_diff = np.ma.masked_where((p_diff) > 0, (p_diff))                   #mask indices above p_base
@@ -668,7 +668,7 @@ def calc_parcel_dj(p, th_e_base, base_t, base_p):
    #make moist adiabatic profile:
    for k in range(1, p.shape[0]):
       wet_parcel[k,:,:] = np.where(k > base_index, dj_wetlift(th_e_base, p[k,:,:]), wet_parcel[k,:,:])
-   
+
    t_parcel = np.where(dry_parcel > wet_parcel, dry_parcel, wet_parcel)
 
    return t_parcel
@@ -677,7 +677,7 @@ def calc_parcel_dj(p, th_e_base, base_t, base_p):
 
 def calc_lfc_el(t_env, t_parc, p, lcl_t, lcl_p):
 
-   #Calculates the temp of the LFC and EL given a 3d numpy array for the environmental temperature (K), 
+   #Calculates the temp of the LFC and EL given a 3d numpy array for the environmental temperature (K),
    #lifted parcel temperature (K), and vertical depth of each grid point (m)
 
    #Code will integrate (t_env - t_parc) via the trapezoidal rule for any layers
@@ -710,7 +710,7 @@ def calc_lfc_el(t_env, t_parc, p, lcl_t, lcl_p):
    for k in range(1, t_diff.shape[0]):					#set all regions below LCL to 0. (LFC cannot occur below LCL)
       t_diff[k,:,:] = np.where(masked_p[k,:,:] > lcl_p, 0., t_diff[k,:,:])
 
-   masked_p2 = np.ma.masked_where(t_diff <= 0., (masked_p)) 	        #mask all pressures where t_env > t_parc 
+   masked_p2 = np.ma.masked_where(t_diff <= 0., (masked_p)) 	        #mask all pressures where t_env > t_parc
 
    lfc_p = np.max(masked_p2, axis=0)					#first LFC used if multiple
    el_p = np.min(masked_p2, axis=0)					#last EL used if multiple
@@ -718,7 +718,7 @@ def calc_lfc_el(t_env, t_parc, p, lcl_t, lcl_p):
    np.ma.set_fill_value(lfc_p, 0.)
    np.ma.set_fill_value(el_p, 0.)
 
-   return lfc_p, el_p 
+   return lfc_p, el_p
 
 
 #######################################################################################
@@ -795,7 +795,7 @@ def calc_cin(t_env, t_parc, p, lfc_p, dz):
 
 def calc_height(ph, phb):
 
-   #Calculates the height (MSL) of the domain and vertical grid spacing (m) 
+   #Calculates the height (MSL) of the domain and vertical grid spacing (m)
 
    #Input:
 
@@ -819,10 +819,10 @@ def calc_height(ph, phb):
 
 def find_upper_lower(value, field):
 
-   #Finds nearest indices from a 3d numpy array (axis=0) of values above and below a 2d 
-   #array of values 
+   #Finds nearest indices from a 3d numpy array (axis=0) of values above and below a 2d
+   #array of values
 
-   #NOTE:  Assumes all points in values are between the min and max values in field 
+   #NOTE:  Assumes all points in values are between the min and max values in field
 
    #Input:
 
@@ -842,7 +842,7 @@ def find_upper_lower(value, field):
    lower = np.abs(masked_diff).argmin(axis=0)			#find indices of nearest values in field below corresponding grid point in values
    upper = lower + 1						#next index up will be closest index > value[grid point]
    upper = np.where(upper >= field.shape[0], lower, upper)
-   
+
    i,j = np.meshgrid(np.arange(value.shape[1]), np.arange(value.shape[0])) 	#2-d arrays of size value.shape
    upper_values = field[upper,j,i]						#2-d array of field[upper,:,:]
    lower_values = field[lower,j,i]						#2-d array of field[lower,:,:]
@@ -870,7 +870,7 @@ def calc_interp(field, upper, lower, interp):
 
 #######################
 
-   i,j = np.meshgrid(np.arange(field.shape[2]), np.arange(field.shape[1]))      #2-d arrays of size value.shape 
+   i,j = np.meshgrid(np.arange(field.shape[2]), np.arange(field.shape[1]))      #2-d arrays of size value.shape
    upper_values = field[upper,j,i]                                              #2-d array of field[upper,:,:]
    lower_values = field[lower,j,i]                                              #2-d array of field[lower,:,:]
 
@@ -895,11 +895,11 @@ def calc_mean_wind(p, z, dz, u, v, lower, upper):
 
    #Input:
 
-   #p - 3d numpy array of pressure (hPa) 
-   #z - 3d numpy array of height AGL (m) 
+   #p - 3d numpy array of pressure (hPa)
+   #z - 3d numpy array of height AGL (m)
    #dz - 3d numpy array of vertical grid spacing depth (m)
-   #u - 3d numpy array of the u component of the wind (m/s) 
-   #v - 3d numpy array of the v component of the wind (m/s) 
+   #u - 3d numpy array of the u component of the wind (m/s)
+   #v - 3d numpy array of the v component of the wind (m/s)
    #lower - float of lower height (AGL) of layer
    #upper - float of upper height (AGL) of layer
 
@@ -908,7 +908,7 @@ def calc_mean_wind(p, z, dz, u, v, lower, upper):
    #mean_u - 2d numpy array of pressure-weighted mean u component of the wind in the layer (m/s)
    #mean_v - 2d numpy array of pressure-weighted mean v component of the wind in the layer (m/s)
 
-   #NOTE: Does NOT currently interpolate to lower and upper values (i.e. mean wind is calculated for grid points between 
+   #NOTE: Does NOT currently interpolate to lower and upper values (i.e. mean wind is calculated for grid points between
    #lower and upper not the actual values)
 
 #######################
@@ -923,8 +923,8 @@ def calc_mean_wind(p, z, dz, u, v, lower, upper):
    dz = np.ma.masked_where(z < lower, (dz))
 
    mean_u = np.ma.average(u, axis=0, weights=(dz*p))
-   mean_v = np.ma.average(v, axis=0, weights=(dz*p)) 
-   return mean_u, mean_v 
+   mean_v = np.ma.average(v, axis=0, weights=(dz*p))
+   return mean_u, mean_v
 
 
 #######################################################################################
@@ -943,14 +943,14 @@ def calc_wind_shear(z, u, v, lower, upper):
    #Input:
 
    #z - 3d numpy array of height AGL (m)
-#   #p - 3d numpy array of pressure (hPa) 
+#   #p - 3d numpy array of pressure (hPa)
 #   #dz - 3d numpy array of vertical grid spacing depth (m)
    #u - 3d numpy array of the u component of the wind (m/s)
    #v - 3d numpy array of the v component of the wind (m/s)
    #lower - float of lower height (AGL) of layer
    #upper - float of upper height (AGL) of layer
 
-   #Dependencies: 
+   #Dependencies:
 
    #calc_mean_wind
 
@@ -959,7 +959,7 @@ def calc_wind_shear(z, u, v, lower, upper):
    #shear_u - 2d numpy array of the u component of the wind shear in layer (m/s)
    #shear_v - 2d numpy array of the v component of the wind shear in layer (m/s)
 
-#   #NOTE: Does NOT currently interpolate to lower and upper values (i.e. wind shear is calculated between the nearest vertical 
+#   #NOTE: Does NOT currently interpolate to lower and upper values (i.e. wind shear is calculated between the nearest vertical
 #   #layers to the lower and upper values, not the actual values)
 
 #######################
@@ -998,15 +998,15 @@ def calc_bunkers(p, z, dz, u, v):
    #Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult".
    #Preprints, 5th Symposium on Advances in Modeling and Analysis Using Python, Phoenix AZ.
 
-   #NOTE:  This is the old method for calculating Bunkers storm motion ... should be upgraded to the 
+   #NOTE:  This is the old method for calculating Bunkers storm motion ... should be upgraded to the
    #effective inflow layer (Bunkers et al. 2014; JOM) in the future
 
    #Dependencies: calc_mean_wind, calc_wind_shear
 
    #Input:
 
-   #p - 3d numpy array of pressure (hPa) 
-   #z - 3d numpy array of height AGL (m) 
+   #p - 3d numpy array of pressure (hPa)
+   #z - 3d numpy array of height AGL (m)
    #dz - 3d numpy array of vertical grid spacing depth (m)
    #u - 3d numpy array of the u component of the wind (m/s)
    #v - 3d numpy array of the v component of the wind (m/s)
@@ -1020,7 +1020,7 @@ def calc_bunkers(p, z, dz, u, v):
 
 #######################
 
-   d = 7.5 						#Empirically-derived deviation value from Bunkers et al. (2014; JOM) 
+   d = 7.5 						#Empirically-derived deviation value from Bunkers et al. (2014; JOM)
 
    upper = 6000.  					#Upper-limit to storm motion layer (m AGL)
    lower = 0. 						#Lower-limit to storm motion layer (m AGL)
@@ -1028,7 +1028,7 @@ def calc_bunkers(p, z, dz, u, v):
    mean_u, mean_v = calc_mean_wind(p, z, dz, u, v, lower, upper)
    shear_u, shear_v = calc_wind_shear(z, u, v, lower, upper)
 
-   modifier = d / np.sqrt(shear_u**2 + shear_v**2) 
+   modifier = d / np.sqrt(shear_u**2 + shear_v**2)
    bunk_r_u = mean_u + (modifier * shear_v)
    bunk_r_v = mean_v - (modifier * shear_u)
    bunk_l_u = mean_u - (modifier * shear_v)
@@ -1065,7 +1065,7 @@ def calc_srh(z, u, v, dz, lower, upper, sm_u, sm_v):
 
    #srh - 2d numpy array of storm-relative helicity for the layer
 
-   #NOTE: Does NOT currently interpolate to lower and upper values (i.e. SRH is calculated between the nearest vertical 
+   #NOTE: Does NOT currently interpolate to lower and upper values (i.e. SRH is calculated between the nearest vertical
    #layers to the lower and upper values, not the actual values)
 
 #######################
@@ -1076,7 +1076,7 @@ def calc_srh(z, u, v, dz, lower, upper, sm_u, sm_v):
    du = sr_u[1:,:,:]-sr_u[:-1,:,:]			#du/dz
    dv = sr_v[1:,:,:]-sr_v[:-1,:,:]			#dv/dz
 
-   layers = (sr_v[:-1,:,:]*(du/dz[:-1,:,:]) - sr_u[:-1,:,:]*(dv/dz[:-1,:,:])) * dz[:-1,:,:] 
+   layers = (sr_v[:-1,:,:]*(du/dz[:-1,:,:]) - sr_u[:-1,:,:]*(dv/dz[:-1,:,:])) * dz[:-1,:,:]
    masked_layers = np.ma.masked_where((z[:-1,:,:]) > upper, (layers))
    masked_layers = np.ma.masked_where((z[:-1,:,:]) < lower, (masked_layers))
 
@@ -1122,7 +1122,7 @@ def calc_srh(z, u, v, dz, lower, upper, sm_u, sm_v):
 #   bulk_t = bulk_shear / 20.
 
 #   cape_t = cape / 1500.
-#   srh_t = srh / 150. 
+#   srh_t = srh / 150.
 
 #   stp = cape_t * lcl_t * srh_t * bulk_t
 
@@ -1194,8 +1194,8 @@ def calc_avg_vort(wz, z, dz, lower, upper):
 
    wz = np.ma.masked_where((z > upper), wz)			#set wz to 0. outside of lower/upper bounds
    wz = np.ma.masked_where((z < lower), wz)
-   wz[0,:,:] = False  						#mask lowest vertical level to reduce noise 
-   wz[1,:,:] = False  						#mask 2nd lowest vertical level to reduce noise 
+   wz[0,:,:] = False  						#mask lowest vertical level to reduce noise
+   wz[1,:,:] = False  						#mask 2nd lowest vertical level to reduce noise
 
    avg_wz = np.ma.average(wz, axis=0, weights=dz) 	#calc weighted average for remaining values
 
@@ -1227,7 +1227,7 @@ def calc_uh(w, wz, z, dz, lower, upper):
    hel = np.where(z < lower, 0., hel)
    uh = np.trapz(hel, x = z[:,:,:], axis=0)		#calc updraft helicity for layer
 
-   return uh 
+   return uh
 
 #######################################################################################
 
@@ -1240,7 +1240,7 @@ def calc_omega(w, p, t):
 
    #w - 3d numpy array of vertical velocity (centered grid) (s^-1)
    #p - 3d numpy array of pressure in hPa
-   #t - 3d numpy array of temperature in deg K 
+   #t - 3d numpy array of temperature in deg K
 
    #Returns:
 
@@ -1264,12 +1264,12 @@ def prob_match_mean(var, mean_var, neighborhood):
 
    #Input:
 
-   #var - 3d array of raw data (e.g. var[member, y, x]) 
+   #var - 3d array of raw data (e.g. var[member, y, x])
    #mean_var - 2d array of ensemble mean values
-   #neighborhood - grid point radius to perform prob matching within (e.g. 15 corresponds to 30x30 grid point region) 
+   #neighborhood - grid point radius to perform prob matching within (e.g. 15 corresponds to 30x30 grid point region)
 
    #Returns:
-   #pmm_var - 2d array of probability matched mean 
+   #pmm_var - 2d array of probability matched mean
 
 #######################
 
@@ -1284,16 +1284,16 @@ def prob_match_mean(var, mean_var, neighborhood):
       else:
          i_min = 0
          i_max = mean_var.shape[0]
- 
+
       for j in range(neighborhood, (mean_var.shape[1] - neighborhood)):
 
          if (neighborhood > 0):
             j_min = j - neighborhood
             j_max = j + neighborhood
-         else:  
+         else:
             j_min = 0
             j_max = mean_var.shape[1]
- 
+
          mean_temp = mean_var[i_min:i_max,j_min:j_max]
          ref_index = (i - i_min) * mean_temp.shape[1] + (j - j_min) #equivalent index to mean_swath[i,j] in a raveled array
 
@@ -1315,7 +1315,7 @@ def prob_match_mean(var, mean_var, neighborhood):
 
 def pmm_kdtree(var, mean_var, neighborhood):
 
-   #NOTE:  This subroutine was intended to be a more efficient version of 'prob_match_mean', but is slower.  
+   #NOTE:  This subroutine was intended to be a more efficient version of 'prob_match_mean', but is slower.
 
    #Calculate a 2d array of the neighborhood probability matched mean when provided with an ensemble mean and raw data
 
@@ -1423,10 +1423,10 @@ def get_local_maxima2d(array2d, radius):
 
 def gauss_kern(size, sizey=None):
 
-   #Create a normalized, 2d, Gaussian convolution filter 
+   #Create a normalized, 2d, Gaussian convolution filter
 
    #Dependencies:
- 
+
    #numpy
 
    #Input:
@@ -1460,7 +1460,7 @@ def gridpoint_interp(field, x_index, y_index):
    #interpolate 2-d array (field) to a specific point (x_index, y_index)
 
    #Dependencies:
- 
+
    #numpy
 
    #Input:
@@ -1533,17 +1533,17 @@ def e2r(e, p):
 
 def dj_wetlift(th_e, p):
 
-   #Calculates the temperature along a predifined pseudoadiabat as in Davies-Jones (2008).  
-   #Method calculates a first guess of wetbulb temperature, then uses one iteration of an 
-   #accelerated version of Newton's method to improve the guess. Method is faster and more 
-   #accurate than the Wobus function.  
+   #Calculates the temperature along a predifined pseudoadiabat as in Davies-Jones (2008).
+   #Method calculates a first guess of wetbulb temperature, then uses one iteration of an
+   #accelerated version of Newton's method to improve the guess. Method is faster and more
+   #accurate than the Wobus function.
 
    #Adapted from a similar sharppy routine (https://github.com/sharppy/) written by Gregory Blumberg
    #Copyright (c) 2015, Kelton Halbert, Greg Blumberg, Tim Supinie, and Patrick Marsh
 
-   #Blumberg, W.G., K.T. Halbert, T.A. Supinie, P.T. Marsh, R.L. Thompson, and J.A. Hart, 2017: 
-   #SHARPpy:  An open source sounding analysis toolkit for the atmospheric sciences.  Bull. Amer. 
-   #Meteor. Soc., In Press. 
+   #Blumberg, W.G., K.T. Halbert, T.A. Supinie, P.T. Marsh, R.L. Thompson, and J.A. Hart, 2017:
+   #SHARPpy:  An open source sounding analysis toolkit for the atmospheric sciences.  Bull. Amer.
+   #Meteor. Soc., In Press.
 
    #Halbert, K. T., W. G. Blumberg, and P. T. Marsh, 2015: "SHARPpy: Fueling the Python Cult".
    #Preprints, 5th Symposium on Advances in Modeling and Analysis Using Python, Phoenix AZ.
@@ -1555,7 +1555,7 @@ def dj_wetlift(th_e, p):
 
    #Returns:
 
-   #t_w -  1 or 2d numpy array of wetbulb temperature (deg. C) 
+   #t_w -  1 or 2d numpy array of wetbulb temperature (deg. C)
 
 #######################
 
@@ -1572,30 +1572,30 @@ def dj_wetlift(th_e, p):
 
    D = (0.1859 * (p / p_0) + 0.6512)**-1
 
-   r_s = e2r(vappres(t_e_c), p) 
+   r_s = e2r(vappres(t_e_c), p)
    deriv = (a * b) / ((t_e_c + b)**2)
 
    ###tau_n = wet bulb temp
    tau_n = t_e * 0.                     #initialize wetbulb temp array
 
-   # quadratic regressions used to find first guess 
+   # quadratic regressions used to find first guess
    k1_pi = -38.5 * (nondim_pres**2) + 137.81 * nondim_pres - 53.737  # RDJ 2008 Eq 4.3
    k2_pi = -4.392 * (nondim_pres**2) + 56.831 * nondim_pres - 0.384  # RDJ 2008 Eq 4.4
-   
+
    # Criteria 1 (RDJ 2008 Eq 4.8)
    idx = np.where(normalized_t_e > D)  # [0]
    tau_n[idx] = t_e_c[idx] - ((A * r_s[idx]) / (1 + A * r_s[idx] * deriv[idx]))
 
    # Criteria 2 (RDJ 2007 Eq 4.9)
-   idx = np.where((1 <= normalized_t_e) & (normalized_t_e <= D))  
+   idx = np.where((1 <= normalized_t_e) & (normalized_t_e <= D))
    tau_n[idx] = k1_pi[idx] - k2_pi[idx] * normalized_t_e[idx]
 
    # Criteria 3 (RDJ 2007 Eq 4.10)
-   idx = np.where((0.4 <= normalized_t_e) & (normalized_t_e < 1))  
+   idx = np.where((0.4 <= normalized_t_e) & (normalized_t_e < 1))
    tau_n[idx] = (k1_pi[idx] - 1.21) - ((k2_pi[idx] - 1.21) * normalized_t_e[idx])
-   
+
    # Criteria 4 (RDJ 2007 Eq 4.11)
-   idx = np.where(normalized_t_e < 0.4)  
+   idx = np.where(normalized_t_e < 0.4)
    tau_n[idx] = (k1_pi[idx] - 2.66) - ((k2_pi[idx] - 1.21) * normalized_t_e[idx]) + (0.58 * (normalized_t_e[idx]**-1))
 
    tau_n_c = tau_n                 #convert 1st guess to deg C
@@ -1605,7 +1605,7 @@ def dj_wetlift(th_e, p):
    # Get the derivative terms to perform Newton's Method
    es_w = vappres(tau_n_c)
    rs_w = e2r(vappres(tau_n_c), p)
-   G = ((k_0/tau_n) - k_1) * (rs_w + k_2 * np.power(rs_w,2))   
+   G = ((k_0/tau_n) - k_1) * (rs_w + k_2 * np.power(rs_w,2))
 
    #RDJ 2008 Equation 2.3
    f_tau_pi = np.power(t_0 / tau_n, lambda_factor) * \
@@ -1613,7 +1613,7 @@ def dj_wetlift(th_e, p):
                np.power(nondim_pres, - lambda_factor * k_3 * rs_w) * \
                np.exp(-lambda_factor * G)
 
-   #RDJ 2008 Equation A.1 
+   #RDJ 2008 Equation A.1
    des_dt = es_w * ((a * b) / ((tau_n - t_0 + b)**2))
    drs_dt = ((eps * p) / ((p - es_w)**2)) * des_dt
    dG_dt = ((-k_0 / (tau_n**2)) * (rs_w + k_2 * (rs_w**2))) + \
@@ -1657,9 +1657,9 @@ def dj_wetlift(th_e, p):
 #
 #   idx = np.argmin(np.abs(np.asarray([quad_tau_n1, quad_tau_n2]) - lin_tau_n2), axis=0)
 
-###testing showed that the second root was always closer to the non-accelerated method - so it is hard coded here. 
+###testing showed that the second root was always closer to the non-accelerated method - so it is hard coded here.
 
-   pseudoadiabat = quad_tau_n2 
+   pseudoadiabat = quad_tau_n2
 
    return pseudoadiabat
 
@@ -1671,7 +1671,7 @@ def calc_ens_products(var, rad1, rad2, rad3, kernel, thresh):
    #Calculates 2018 suite of ensemble products given a single numpy array of dimensions
    #[ne, ny, nx] for 3 neighborhoods defined by rad1, rad2, and rad3 and 1 Guassian smoothing kernel
 
-   #Dependencies: 
+   #Dependencies:
    #get_local_maxima2d
    #calc_prob
 
@@ -1688,20 +1688,20 @@ def calc_ens_products(var, rad1, rad2, rad3, kernel, thresh):
 
    #var_90 - 90th percentile along axis 0
    #var_max - Max value along axis 0
-   #prob_1 - Neighborhood probability (rad1) 
-   #prob_2 - Neighborhood probability (rad1) 
-   #prob_3 - Neighborhood probability (rad1) 
+   #prob_1 - Neighborhood probability (rad1)
+   #prob_2 - Neighborhood probability (rad1)
+   #prob_3 - Neighborhood probability (rad1)
 
 #######################
 
-   var_neigh1 = var * 0. 
-   var_neigh2 = var * 0. 
-   var_neigh3 = var * 0. 
+   var_neigh1 = var * 0.
+   var_neigh2 = var * 0.
+   var_neigh3 = var * 0.
 
    for n in range(0, var.shape[0]):
       if (rad1 == 1): #if no neighborhood
          var_neigh1[n,:,:] = var[n,:,:]
-      else: 
+      else:
          var_1_temp = get_local_maxima2d(var[n,:,:], rad1)
          var_neigh1[n,:,:] = signal.convolve2d(var_1_temp, kernel, 'same')
 
@@ -1728,7 +1728,7 @@ def calc_perc_products(var, perc, rad1, kernel):
    #Calculates 2018 suite of ensemble summary products given a single numpy array of dimensions
    #[ne, ny, nx] and a 1-d array of percentile thresholds to calculate swaths for
 
-   #Dependencies: 
+   #Dependencies:
    #get_local_maxima2d
    #calc_prob
 
@@ -1745,9 +1745,9 @@ def calc_perc_products(var, perc, rad1, kernel):
 
    #var_90 - 90th percentile along axis 0
    #var_max - Max value along axis 0
-   #prob_1 - Neighborhood probability (rad1) 
-   #prob_2 - Neighborhood probability (rad1) 
-   #prob_3 - Neighborhood probability (rad1) 
+   #prob_1 - Neighborhood probability (rad1)
+   #prob_2 - Neighborhood probability (rad1)
+   #prob_3 - Neighborhood probability (rad1)
 
 #######################
 
@@ -1760,8 +1760,8 @@ def calc_perc_products(var, perc, rad1, kernel):
       else:
          var_1_temp = get_local_maxima2d(var[n,:,:], rad1)
          var_neigh1[n,:,:] = signal.convolve2d(var_1_temp, kernel, 'same')
-      
-   for p in range(0, len(perc)): 
+
+   for p in range(0, len(perc)):
       var_perc[p,:,:] = np.percentile(var_neigh1, perc[p], axis=0)
 
    return var_perc
@@ -1774,7 +1774,7 @@ def calc_prob_products(var, prob, rad1, kernel):
    #Calculates 2018 suite of ensemble summary products given a single numpy array of dimensions
    #[ne, ny, nx] and a 1-d array of percentile thresholds to calculate swaths for
 
-   #Dependencies: 
+   #Dependencies:
    #get_local_maxima2d
    #calc_prob
 
@@ -1791,9 +1791,9 @@ def calc_prob_products(var, prob, rad1, kernel):
 
    #var_90 - 90th percentile along axis 0
    #var_max - Max value along axis 0
-   #prob_1 - Neighborhood probability (rad1) 
-   #prob_2 - Neighborhood probability (rad1) 
-   #prob_3 - Neighborhood probability (rad1) 
+   #prob_1 - Neighborhood probability (rad1)
+   #prob_2 - Neighborhood probability (rad1)
+   #prob_3 - Neighborhood probability (rad1)
 
 #######################
 
@@ -1817,10 +1817,10 @@ def calc_prob_products(var, prob, rad1, kernel):
 
 def find_objects_swath(var, var_indices, radmask, thresh, area_thresh, cont_thresh):
 
-   #Finds objects for a forecast swath.  Provided a [ne,ny,nx] array, it will find objects according to the 
-   #thresholds provided.  A 2-d array with objects labeled as integers will be returned. 
+   #Finds objects for a forecast swath.  Provided a [ne,ny,nx] array, it will find objects according to the
+   #thresholds provided.  A 2-d array with objects labeled as integers will be returned.
 
-   #Dependencies: 
+   #Dependencies:
    #scikit-image
 
    #Input:
@@ -1862,7 +1862,7 @@ def find_objects_swath(var, var_indices, radmask, thresh, area_thresh, cont_thre
       for i in range(0, len(obj_large)):
          temp_obj = np.where(obj_labels == (obj_large[i]+1), var_indices[n,:,:], 0.) #create 2d field of timestep indices associated with single object
          temp_num_times = np.unique(temp_obj)  #find number of unique forecast timesteps
-         if (len(temp_num_times) > cont_thresh): #require swath object to contain values from at least 'cont_thresh' different times 
+         if (len(temp_num_times) > cont_thresh): #require swath object to contain values from at least 'cont_thresh' different times
             obj[n,:,:] = np.where(obj_labels == (obj_large[i]+1), obj_init[n,:,:], obj[n,:,:]) #replace gridpoints within objects with original intensity values
 
    return obj
@@ -1872,12 +1872,12 @@ def find_objects_swath(var, var_indices, radmask, thresh, area_thresh, cont_thre
 
 def find_objects_timestep(var, radmask, thresh, area_thresh):
 
-   #Finds objects for a forecast timestep.  Provided a [ne,ny,nx] array, it will find objects according to 
-   #the thresholds provided.  A 3-d array with objects labeled as integers will be returned. 
+   #Finds objects for a forecast timestep.  Provided a [ne,ny,nx] array, it will find objects according to
+   #the thresholds provided.  A 3-d array with objects labeled as integers will be returned.
 
-   #Dependencies: 
+   #Dependencies:
    #scikit-image
-   
+
    #Input:
 
    #var -  2d numpy array [ny,nx]
@@ -1961,7 +1961,7 @@ def calc_var_at_plev(var, pb, p, plev): ####Added by BCM-- 16 APR 2019
     p_bot_var = var_1d[p_bot.flatten(),range(nyv*nxv)].reshape(nyv,nxv)
 
     var_plev_interp = p_top_var * weight_p_top + p_bot_var * weight_p_bot
-    var_plev_interp[p_top == 0] = 0.000001 #Force to be pos. definite but by several inverse-orders of magnitude. 
+    var_plev_interp[p_top == 0] = 0.000001 #Force to be pos. definite but by several inverse-orders of magnitude.
 
     return var_plev_interp
 
@@ -1970,7 +1970,7 @@ def calc_var_at_plev(var, pb, p, plev): ####Added by BCM-- 16 APR 2019
 
 def calc_bl_moisture_conv(p, u, v, q, p_sfc): ####Added by BCM-- 19 APR 2019
 
-   # Compute the boundary-layer moisture convergence adapted from the methods in 
+   # Compute the boundary-layer moisture convergence adapted from the methods in
    # Banacos and Schultz (2005; WAF). This subroutine takes the mixing ratio and multiplies it by the
    # convergence of the mean wind in the boundary layer (1000-925 hPa).
 
@@ -2020,8 +2020,8 @@ def calc_bl_moisture_conv(p, u, v, q, p_sfc): ####Added by BCM-- 19 APR 2019
 def calc_ul_divergence(p, u, v, pbot, ptop): ####Added by BCM-- 22 APR 2019
 
    # Compute the upper-level (400-250 hPa) wind divergence given pressure, u, and v wind components.
-   # This subroutine utilizes a centered finite difference via numpy's gradient function 
-   # to compute the first derivative of wind components. 
+   # This subroutine utilizes a centered finite difference via numpy's gradient function
+   # to compute the first derivative of wind components.
    #
    # Input:
    #
@@ -2105,10 +2105,10 @@ def calc_mean_wind_hgt_nowgt(p, u, v, z, upper, lower):
 
    #Input:
 
-   #p - 3d numpy array of pressure (hPa) 
-   #z - 3d numpy array of height AGL (m) 
-   #u - 3d numpy array of the u component of the wind (m/s) 
-   #v - 3d numpy array of the v component of the wind (m/s) 
+   #p - 3d numpy array of pressure (hPa)
+   #z - 3d numpy array of height AGL (m)
+   #u - 3d numpy array of the u component of the wind (m/s)
+   #v - 3d numpy array of the v component of the wind (m/s)
    #lower - float of lower height (AGL) of layer
    #upper - float of upper height (AGL) of layer
 
@@ -2134,7 +2134,7 @@ def calc_mean_wind_hgt_nowgt(p, u, v, z, upper, lower):
 
 def calc_corfidi(p, z, u, v, pbot, ptop, lower, upper):
 
-   #Calculates upshear (backbuilding) and downshear (forward-propagation) Corfidi MCS vectors provided 
+   #Calculates upshear (backbuilding) and downshear (forward-propagation) Corfidi MCS vectors provided
    #input arrays of pressure, height, u, and v, and top  and bottom pressure and height levels (added by BCM -- 22/23 APR 2019).
 
    #Adapted from similar sharppy routine (https://github.com/sharppy/)
@@ -2147,7 +2147,7 @@ def calc_corfidi(p, z, u, v, pbot, ptop, lower, upper):
 
    #Input:
 
-   #p - 3d numpy array of pressure (hPa) 
+   #p - 3d numpy array of pressure (hPa)
    #z - 3d numpy array of height AGL (m)
    #u - 3d numpy array of the u component of the wind (m/s)
    #v - 3d numpy array of the v component of the wind (m/s)
@@ -2194,7 +2194,7 @@ def calc_corfidi(p, z, u, v, pbot, ptop, lower, upper):
 def calc_ctp(qt, p):
 
    #Calculates cloud top pressure (CTP) given a 3d numpy array for total mixing ratio (qt) and
-   #pressure (hPa).  
+   #pressure (hPa).
 
    #Code will return pressure associated with highest qt > q_min
 
@@ -2224,14 +2224,14 @@ def calc_ctp(qt, p):
 def calc_pw(qv, p):
 
    #Calculates precipitable water (PW) given a 3d numpy array for water vapor mixing ratio
-   #(qv) and pressure (hPa) 
+   #(qv) and pressure (hPa)
 
    #Code will return integrated precipital water in inches
 
    #Input:
 
    #qv - 3d numpy array [z,y,x] of water vapor mixing ratio (g/Kg)
-   #p - 3d numpy array [y,x] of pressure (hPa) 
+   #p - 3d numpy array [y,x] of pressure (hPa)
 
    #Returns:
 
@@ -2241,10 +2241,10 @@ def calc_pw(qv, p):
 
    pw = np.zeros((qv.shape[1],qv.shape[2]))
 #   qv_gkg = qv + 1000. #convert to g/kg
-   
+
 #   pw = np.trapz(qv, dx = dz[:-1,:,:], axis=0)
 
-   for k in range(0, (qv.shape[0]-1)): 
+   for k in range(0, (qv.shape[0]-1)):
       pw = pw + 0.5 * ((qv[k,:,:] + qv[k+1,:,:]) * (p[k,:,:] - p[k+1,:,:]))
 
    pw = np.where(pw < 0., 0., pw)
@@ -2262,7 +2262,7 @@ def calc_pw(qv, p):
 ###########################################################################################################
 def calc_omega(p, w, pb, t, plev):
 
-   #Calculates vertical velocity (omega) at a pressure level 
+   #Calculates vertical velocity (omega) at a pressure level
    #given a 2d numpy array for vertical velocity (m/s)
    #and pressure (hPa), along with base state pressure (hPa), temperature (K).
 

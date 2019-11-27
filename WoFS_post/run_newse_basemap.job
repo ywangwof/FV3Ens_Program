@@ -11,54 +11,54 @@
 
 set echo
 
+set base_dir = /oldscratch/ywang/EPIC/Program/WoFS_post
+
 # cd to directory where job was submitted from
-cd /oldscratch/larissa.reames/fv3sar_post/
+cd ${base_dir}
 
 #$SLURM_SUBMIT_DIR
 
 setenv MALLOC_MMAP_MAX 0
 setenv MALLOC_TRIM_THRESHOLD 536870912
+set PYTHON = /scratch/software/Odin/python/anaconda2/bin/python
+setenv PATH /scratch/software/Odin/python/anaconda2/bin:$PATH
 
-# User defined variables: 
+# User defined variables:
 
-set date = 20180501
-set base_dir = /oldscratch/larissa.reames/fv3sar_post/
-set fcst_base = /oldscratch/larissa.reames/fv3sar_post/wrf_lookalikes/
-#set fcst_base = /scratch/jtti/realtime/FCST/ 
+set date = 20190520
+set fcst_base = /scratch/ywang/EPIC/test_runs
+#set fcst_base = /scratch/jtti/realtime/FCST/
 
-set times = (1900)
+set times = (18)
 
-# Build directories needed: 
+# Build directories needed:
 
-set fcst = $fcst_base$date"_new/"
-set mapdir = $base_dir"basemap/"
+set fcst = "$fcst_base/$date"
 
-if (! -d $mapdir) then
-  mkdir $mapdir
-endif
-
-set flagdir = $base_dir"flags/"$date"/"
-
-# Run wrapper script for forecast: 
+# Run wrapper script for forecast:
 
 sleep 1
 
 set i = 1
 
 foreach dir ($times)
-   set fcstdir = $fcst$dir"/"
-   set flagfile = $flagdir"/"$dir"_map.txt"
+   set fcstdir = "$fcst$dir/"
+
+   set mapdir = "$fcstdir/basemap/"
+   if (! -d $mapdir) then
+     mkdir $mapdir
+   endif
 
    echo $fcstdir
-   echo $flagfile
+   echo $mapdir
 
    if ( -d $fcstdir ) then
-      if ( ! -e $flagfile ) then
-         python basemap_summary_file.py -d $fcstdir -o $mapdir
-         touch $flagfile 
-         exit(0)
-      endif
-   endif 
+      #if ( ! -e $flagfile ) then
+         $PYTHON basemap_summary_file.py -d $fcstdir -o $mapdir
+         #touch $flagfile
+         #exit(0)
+      #endif
+   endif
    @ i++
 end
 

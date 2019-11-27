@@ -35,7 +35,7 @@ else:
 
 print "TIME : %d \n" % t
 
-dt = t * 30
+dt = t * 10
 
 fcsttime = timedelta(minutes=dt)
 total_seconds = int(fcsttime.total_seconds())
@@ -97,22 +97,21 @@ valid_hr = str(valid_time_tt[3])
 valid_min = str(valid_time_tt[4])
 
 ### Set output path ###
-timestep = str(t)
-if (len(timestep) == 1):
-   timestep = '0' + timestep
+nt = t
+timestep = "%02d"%nt
 
-outname = "/FV3_ENS_" + timestep + "_" + init_date + "_" + init_time + "_" + valid_time + ".nc"         #output file
-output_path = outdir + outname
+outname = "FV3_ENS_" + timestep + "_" + init_date + "_" + init_time + "_" + valid_time + ".nc"         #output file
+output_path = os.path.join(outdir, outname)
 
 ### Get grid/projection info ###
 
-dx = start_date[13:17]                          #east-west grid spacing (m)
-dy = start_date[13:17]                          #north-south grid spacing (m)
-cen_lat = 39.71457                                   #center of domain latitude (dec deg)
-cen_lon = -96.44037                                   #center of domain longitude (dec deg)
-stand_lon = -96.44036                                 #center lon of Lambert conformal projection
-true_lat_1 = 30.0                                #true lat value 1 for Lambert conformal conversion (dec deg)
-true_lat_2 = 60.0                                #true lat value 2 for Lambert conformal conversion (dec deg)
+dx = fdyn.dx                       #east-west grid spacing (m)
+dy = fdyn.dy                       #north-south grid spacing (m)
+cen_lat    = fdyn.cen_lat   #39.71457                                   #center of domain latitude (dec deg)
+cen_lon    = fdyn.cen_lon   #-96.44037                                   #center of domain longitude (dec deg)
+stand_lon  = fdyn.cen_lon   #-96.44036                                 #center lon of Lambert conformal projection
+true_lat_1 = fdyn.stdlat1   #30.0                                #true lat value 1 for Lambert conformal conversion (dec deg)
+true_lat_2 = fdyn.stdlat2   #60.0                                #true lat value 2 for Lambert conformal conversion (dec deg)
 
 
 xlat = np.degrees(fdyn.variables["grid_yt"][:,:])       #latitude (dec deg; Lambert conformal)
@@ -186,7 +185,7 @@ th = (100000.00/pfull) ** (287/1004.5) * tk - 300.0
 
 print 'Min max th = %f  %f' % (np.min(th), np.max(th))
 if (np.max(tk) > 350.0) :
-  sys.exit()
+  sys.exit(1)
 
 
 #nz = pb.shape[0]
@@ -229,6 +228,7 @@ del fdyn, fphy
 ### Create file and dimensions: ###
 
 try:
+   print "Creating %s ...." % output_path
    fout = netCDF4.Dataset(output_path, "w")
 except:
    print "Could not create %s!\n" % output_path
@@ -250,8 +250,7 @@ setattr(fout,'PROJECTION','Lambert Conformal')
 setattr(fout,'START_DATE',start_date_true)
 setattr(fout,'INIT_TIME_SECONDS',init_time_seconds)
 setattr(fout,'VALID_TIME_SECONDS',valid_time_seconds)
-setattr(fout,'FORECAST_TIME_STEP',t)
-
+setattr(fout,'FORECAST_TIME_STEP',nt)
 print 'Create variables'
 
 xlat1 = fout.createVariable('xlat', 'f4', ('NY','NX',))
@@ -405,19 +404,19 @@ qqg.units = "kg/m^2"
 print 'Write variables'
 
 fout.variables['xlat'][:] = xlat
-fout.variables['xlon'][:]= xlon
-fout.variables['hgt'][:]= hgt
+fout.variables['xlon'][:] = xlon
+fout.variables['hgt'][:]  = hgt
 fout.variables['psfc'][:] = psfc
-fout.variables['u10'][:] = u10
-fout.variables['v10'][:] = v10
-fout.variables['t2'][:] = t2
-fout.variables['th2'][:] = th2
-fout.variables['q2'][:] = q2
+fout.variables['u10'][:]  = u10
+fout.variables['v10'][:]  = v10
+fout.variables['t2'][:]   = t2
+fout.variables['th2'][:]  = th2
+fout.variables['q2'][:]   = q2
 #fout.variables['wspd80'][:] = wspd80
-fout.variables['w_up_max'][:]= w_up
-fout.variables['uh_25_max'][:]= uh25
-fout.variables['uh_02_max'][:]= uh02
-fout.variables['wz_02_max'][:]= wz02
+fout.variables['w_up_max'][:]  = w_up
+fout.variables['uh_25_max'][:] = uh25
+fout.variables['uh_02_max'][:] = uh02
+fout.variables['wz_02_max'][:] = wz02
 fout.variables['refl_10cm'][:] = dbz
 fout.variables['prec_acc_nc'][:] = rain
 fout.variables['hail_maxk1'][:] = hail

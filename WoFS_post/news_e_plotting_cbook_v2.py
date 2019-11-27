@@ -2,26 +2,26 @@
 #######################################################################################
 #news_e_plotting_cbook.py - written 2016 by Pat Skinner and Jessie Choate
 #
-#This code is a collection of classes and subroutines used to create plots of NEWS-e 
-#summary output for the real-time website:  
-#http://www.nssl.noaa.gov/projects/wof/news-e/images.php? 
+#This code is a collection of classes and subroutines used to create plots of NEWS-e
+#summary output for the real-time website:
+#http://www.nssl.noaa.gov/projects/wof/news-e/images.php?
 #
 ######################################################################################
-#Classes available are: 
+#Classes available are:
 #
-#cb_colors     -> Collection of RGB values for custom colormaps.  Colors taken from 
+#cb_colors     -> Collection of RGB values for custom colormaps.  Colors taken from
 #                 the colorbrewer website:  http://colorbrewer2.org/
 #web_plot      -> Object consisting of information needed (i.e. labels, contour levels)
 #                 to create most of the NEWS-e website plots
 #v_plot        -> Object consisting of information needed to create paintball plots
 #ob_plot       -> Object consisting of information needed to create object matching plots
 #
-#Plotting Subroutines available are: 
+#Plotting Subroutines available are:
 #
-#mymap         -> Creates basemap instance (Lambert Conformal projection) with 
+#mymap         -> Creates basemap instance (Lambert Conformal projection) with
 #                 geographic boundaries for plotting
 #create_fig    -> Creates a standardized figure template for NEWS-e website plots
-#env_plot      -> Plots a NEWS-e environment or swath product, saves .png, then 
+#env_plot      -> Plots a NEWS-e environment or swath product, saves .png, then
 #                 removed plots and returns empty basemap (used for majority of plotting)
 #paintqc_plot  -> Creates paintball plot of forecast and verification objects
 #ob_ver_plot   -> Creates probability of object match vs. false alarm plot
@@ -29,16 +29,16 @@
 #dot_plot      -> Same as env_plot, except includes scatter plot of OK Mesonet station error
 #mrms_plot     -> Creates plots of MRMS DZ and Az. Shear over the NEWS-e domain
 #                 (not used for website)
-#plot_warn     -> Plots shapefiles of NWS SVR/TOR/FF warnings 
+#plot_warn     -> Plots shapefiles of NWS SVR/TOR/FF warnings
 #plot_lsr      -> Adds scatter plots of hail/wind/tornado local storm reports
 #remove_warn   -> Removes plots of NWS warnings
 #rmove_lsr     -> Removes plots of LSRs
 #pmm_rectangle -> Plots rectangle over domain where probability-matched mean is valid
-#                 (no longer used) 
-#rem_pmm_rect  -> Removes pmm_rectangle plot (no longer used) 
+#                 (no longer used)
+#rem_pmm_rect  -> Removes pmm_rectangle plot (no longer used)
 #
 #######################################################################################
-#Future needs: 
+#Future needs:
 #
 #
 #######################################################################################
@@ -130,7 +130,7 @@ class cb_colors(object):
    red8 = (165/255., 15/255., 21/255.)
    red9 = (103/255., 0/255., 13/255.)
 
-### Qualitative colors (pastels): 
+### Qualitative colors (pastels):
 
    q1 = (141/255., 255/255., 199/255.)  #aqua
    q2 = (255/255., 255/255., 179/255.)  #pale yellow
@@ -174,7 +174,7 @@ class cb_colors(object):
    c70 = (0.6,                 0.3333333333333333, 0.788235294117647)
    c75 = (0.0,                 0.0,                0.0)
 
-### Custom Colormaps: 
+### Custom Colormaps:
 
    cin_cmap = matplotlib.colors.ListedColormap([purple7, purple6, purple5, purple4, blue4, blue3, blue2, blue1])
 
@@ -221,10 +221,10 @@ class cb_colors(object):
    mslp_cmap = matplotlib.colors.ListedColormap([purple7, purple6, purple5, red7, red6, red5,orange7, orange6, orange5, green8, green7, green6, blue6, blue5, blue4, gray3, gray2, gray1])
 
    paintball_colors = matplotlib.colors.ListedColormap([q1, b8, q3, q4, q5, q6, q7, q8, b6, q10, q11, b3, b2, purple5, red5, green5, blue5, orange5])
-   paintball_colors_list = [q1, b8, q3, q4, q5, q6, q7, q8, b6, q10, q11, b3, b2, purple5, red5, green5, blue5, orange5]
+   paintball_colors_list = [q1, b8, q3, q4, q5, q6, q7, q8, b6, q10, q11, b3, b2, purple5, red5, green5, blue5, orange5, q1, b8, q3, q4, q5, q6, q7, q8, b6, q10, q11, b3, b2, purple5, red5, green5, blue5, orange5, q1, b8, q3, q4, q5, q6, q7, q8, b6, q10, q11, b3, b2, purple5, red5, green5, blue5, orange5]
 
-   tl_paintball_colors = matplotlib.colors.ListedColormap([gray6, orange6, blue6, red6, green6, purple6, gray4, orange4, blue4, red4, green4, purple4, gray6, orange6, blue6, red6]) 
-   tl_paintball_colors_list = [gray6, orange6, blue6, red6, green6, purple6, gray4, orange4, blue4, red4, green4, purple4, gray6, orange6, blue6, red6] 
+   tl_paintball_colors = matplotlib.colors.ListedColormap([gray6, orange6, blue6, red6, green6, purple6, gray4, orange4, blue4, red4, green4, purple4, gray6, orange6, blue6, red6])
+   tl_paintball_colors_list = [gray6, orange6, blue6, red6, green6, purple6, gray4, orange4, blue4, red4, green4, purple4, gray6, orange6, blue6, red6, gray6, orange6, blue6, red6, green6, purple6, gray4, orange4, blue4, red4, green4, purple4, gray6, orange6, blue6, red6, gray6, orange6, blue6, red6]
 
 #   tl_paintball_colors_list = [blue5, orange5, green5, purple5, red5, q1, b8, q3, q4, q5, q6, q7, q8, b6, b3, b2]
 
@@ -251,12 +251,12 @@ class cb_colors(object):
    pw_cmap = matplotlib.colors.ListedColormap([orange5, orange4, orange3, orange2,green1, green2, green3, green4,green5, green6, green7, green8, green9, blue4, blue5, blue6, blue7, blue8, purple4, purple5, purple6,purple7,red4,red5,red6,red7,red8])
 
    omega_cmap = matplotlib.colors.ListedColormap([purple7, purple5, purple3, purple2, gray1, green2, green3, green5, green7])
-   
+
 #######################################################################################
 
 class web_plot:
-   
-   #Defines a plotting object used for the majority of the NEWS-e website plots: 
+
+   #Defines a plotting object used for the majority of the NEWS-e website plots:
    #http://www.nssl.noaa.gov/projects/wof/news-e/images.php?
 
    #Input:
@@ -290,7 +290,7 @@ class web_plot:
 
 class v_plot:
 
-   #Defines a plotting object used for plotting paintball verification plots: 
+   #Defines a plotting object used for plotting paintball verification plots:
    #http://www.nssl.noaa.gov/projects/wof/news-e/images.php?
 
    #Input:
@@ -323,7 +323,7 @@ class v_plot:
 
 class ob_plot:
 
-   #Defines a plotting object used for object matching verification plots:   
+   #Defines a plotting object used for object matching verification plots:
    #http://www.nssl.noaa.gov/projects/wof/news-e/images.php?
 
    #Input:
@@ -336,7 +336,7 @@ class ob_plot:
 
 #######################
 
-   def __init__(self, name, var1_title, var2_title, var1_tcolor, var2_tcolor, var1_levels, var2_levels, var1_cmap, var2_cmap, var3_level, var3_color, extend, alpha, neighborhood): 
+   def __init__(self, name, var1_title, var2_title, var1_tcolor, var2_tcolor, var1_levels, var2_levels, var1_cmap, var2_cmap, var3_level, var3_color, extend, alpha, neighborhood):
       self.name                 = name                  #string name for plot (e.g. wz0to2rot90)
       self.var1_title           = var1_title            #string title for var1 plot
       self.var2_title           = var2_title            #string title for var2 plot
@@ -358,11 +358,11 @@ def mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_fil
 
    #Creates basemap instance with Lambert Comformal projection for plotting
 
-   #Dependencies:  
+   #Dependencies:
 
    #basemap, matplotlib, pyplot
 
-   #Input:  
+   #Input:
 
    #sw_lat - latitude (decimal deg.) of southwest corner of plotting domain
    #sw_lon - longitude (decimal deg.) of southwest corner of plotting domain
@@ -376,7 +376,7 @@ def mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_fil
    #resolution - resolution value for basemap instance (default = 'i' (intermediate))
    #area_thresh - area threshold for plotting water in basemap instance (default = 1000. km)
 
-   #Returns: 
+   #Returns:
    #map - basemap instance for plotting
 
 #######################
@@ -390,7 +390,7 @@ def mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_fil
    map.drawcountries(linewidth=1., color=cb_colors.gray5)
 
    for f in range(0, len(damage_files)):
-      map.readshapefile(damage_files[f], damage_files[f], linewidth=1.5) 
+      map.readshapefile(damage_files[f], damage_files[f], linewidth=1.5)
 
    return map
 
@@ -400,20 +400,20 @@ def mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_fil
 
 def mymap_boundaries(map, damage_files, counties='True'):
 
-   #NOTE:  Used in 2017 processing for when the map instance has been pickled.  Speeds up plotting. 
+   #NOTE:  Used in 2017 processing for when the map instance has been pickled.  Speeds up plotting.
    #Creates basemap instance with Lambert Comformal projection for plotting
 
-   #Dependencies:  
+   #Dependencies:
 
    #basemap, matplotlib, pyplot
 
-   #Input:  
+   #Input:
 
    #map - basemap instance to draw boundaries on
    #damage_files - array of shapefiles (i.e. damage tracks) to be plotted
    #counties - boolean for whether or not to include county boundaries
 
-   #Returns: 
+   #Returns:
    #map - updated basemap instance for plotting
 
 #######################
@@ -435,13 +435,13 @@ def create_fig(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damag
 
    #Return a standardized, empty figure for plotting.  Output figure should contain basemap with shapefile
    #plots, title, time initialized, time valid, and empty colortable axis
-   
-   #Dependencies:  
+
+   #Dependencies:
 
    #basemap, matplotlib, pyplot
    #mymap
 
-   #Input:  
+   #Input:
 
    #sw_lat - latitude (decimal deg.) of southwest corner of plotting domain
    #sw_lon - longitude (decimal deg.) of southwest corner of plotting domain
@@ -476,17 +476,17 @@ def create_fig(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damag
 
 ##### handle axes variations between paintball, object matching, and regular plots: #######
 
-   if (verif == 'True'):   
-      map = mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_files, resolution, area_thresh, counties='True') 
-      ax2 = fig.add_axes([0.04,0.03,0.46,0.05])   
+   if (verif == 'True'):
+      map = mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_files, resolution, area_thresh, counties='True')
+      ax2 = fig.add_axes([0.04,0.03,0.46,0.05])
       ax3 = fig.add_axes([0.54,0.03,0.46,0.05])
-   elif (object == 'True'):   
-      map = mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_files, resolution, area_thresh, counties='True') 
-      ax2 = fig.add_axes([0.02,0.06,0.46,0.02])   
+   elif (object == 'True'):
+      map = mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_files, resolution, area_thresh, counties='True')
+      ax2 = fig.add_axes([0.02,0.06,0.46,0.02])
       ax3 = fig.add_axes([0.52,0.06,0.46,0.02])
    else:
-      map = mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_files, resolution, area_thresh, counties='True') 
-      ax2 = fig.add_axes([0.04,0.06,0.6,0.02])   
+      map = mymap(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damage_files, resolution, area_thresh, counties='True')
+      ax2 = fig.add_axes([0.04,0.06,0.6,0.02])
       ax3 = fig.add_axes([0.66,0.03,0.3,0.05])
 
    return map, fig, ax1, ax2, ax3
@@ -495,20 +495,20 @@ def create_fig(sw_lat, sw_lon, ne_lat, ne_lon, lat_1, lat_2, lat_0, lon_0, damag
 
 def create_fig_nomap(verif='False', object='False'):
 
-   #NOTE:  Used as of 2017 processing for when the map instance has been pickled.  Speeds up plotting. 
+   #NOTE:  Used as of 2017 processing for when the map instance has been pickled.  Speeds up plotting.
 
    #Return a standardized, empty figure for plotting.  Output figure should contain basemap with shapefile
    #plots, title, time initialized, time valid, and empty colortable axis
 
-   #Dependencies:  
+   #Dependencies:
 
    #basemap, matplotlib, pyplot
    #mymap
 
-   #Input:  
+   #Input:
 
    #verif - boolean for creating a verification plot
-   #object - boolean for creating an object-based verification plot 
+   #object - boolean for creating an object-based verification plot
 
    #Returns:
    #fig - empty, standardized figure for plotting
@@ -548,20 +548,20 @@ def create_fig_nomap(verif='False', object='False'):
 
 def create_fig_tc(verif='False', object='False'):
 
-   #NOTE:  Used as of 2017 processing for when the map instance has been pickled.  Speeds up plotting. 
+   #NOTE:  Used as of 2017 processing for when the map instance has been pickled.  Speeds up plotting.
 
    #Return a standardized, empty figure for plotting.  Output figure should contain basemap with shapefile
    #plots, title, time initialized, time valid, and empty colortable axis
 
-   #Dependencies:  
+   #Dependencies:
 
    #basemap, matplotlib, pyplot
    #mymap
 
-   #Input:  
+   #Input:
 
    #verif - boolean for creating a verification plot
-   #object - boolean for creating an object-based verification plot 
+   #object - boolean for creating an object-based verification plot
 
    #Returns:
    #fig - empty, standardized figure for plotting
@@ -603,9 +603,9 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    #This subroutine is used to create the majority of the NEWS-e plots used on the website
    #(all except the paintball, object-matching, and MRMS verification plots).  If passed an
    #empty basemap and figure object as well as the data and specifications for the plot, it
-   #will create a plot over the model domain with appropriate labels, save the image us a 
+   #will create a plot over the model domain with appropriate labels, save the image us a
    #.png using the appropriate timestamp, then remove the plots from the underlying basemap
-   #template 
+   #template
 
    #Dependencies:
 
@@ -619,15 +619,15 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    #ax1 - Axis 1 instance for plotting (from create_fig)
    #ax2 - Axis 2 instance for plotting (from create_fig)
    #ax3 - Axis 3 instance for plotting (from create_fig)
-   #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted 
-   #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted 
+   #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted
+   #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted
    #plot - web_plot object to be plotted
    #var1 - 2d numpy array of the data to be plotted as a filled contour
    #var2 - 2d numpy array of the data to be plotted as a contour
    #t - time index associated with the plot (used for website indexing)
    #init_label - string of forecast initialization time
    #valid_label - string of time forecast valid
-   #domain - string specifying subdomain over which data is plotted (currently always 'full') 
+   #domain - string specifying subdomain over which data is plotted (currently always 'full')
    #outdir - string of directory path to save .png image in
    #q_u - if quiv=True, u values to produce quiver plot
    #q_v - if quiv=True, v values to produce quiver plot
@@ -636,7 +636,7 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    #t_plus - addition factor for time index (used for website indexing)
    #spec - boolean specifying if special contour level is to be plotted (e.g. 60 deg. dewpoint)
    #quiv - boolean specifying if quiver plot is to be overlain
-   #showmax - boolean specifying if scatter of domain max value and associated label are to be plotted  
+   #showmax - boolean specifying if scatter of domain max value and associated label are to be plotted
 
    #Returns:
 
@@ -650,7 +650,7 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    temp_outtime = str(t * t_star + t_plus)
    if (len(temp_outtime) == 1):
       outtime = 'f00' + temp_outtime
-   elif (len(temp_outtime) == 3): 
+   elif (len(temp_outtime) == 3):
       outtime = 'f' + temp_outtime
    else:
       outtime = 'f0' + temp_outtime
@@ -695,10 +695,10 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    t2 = fig.text(0.03, 0.945, plot.var2_title, fontsize=10, fontweight='bold', color=plot.var2_tcolor)
    t3 = fig.text(0.74, 0.965, init_label, fontsize=9)
    t4 = fig.text(0.74, 0.945, valid_label, fontsize=9)
-   
+
 ############ If domain max value is to be plotted, plot it: #################
 
-   if (showmax == 'True'): 
+   if (showmax == 'True'):
       mx, my = np.unravel_index(var1.argmax(), var1.shape)
       p4 = map.scatter(x[mx,my], y[mx,my], s=30, linewidth=0.85, marker='+', color='k', alpha=0.8)
 
@@ -726,13 +726,13 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    cbar.set_label(plot.var1_title, fontsize=10)
    cl = P.getp(cbar.ax, 'xmajorticklabels')
    P.setp(cl, fontsize=10)
-   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval 
+   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval
        label.set_visible(False)
 
 ########### Switch to axis 3 and set axis to be blank: ################
 
    P.sca(ax3)
-   ax3.axis('off')   
+   ax3.axis('off')
 
 ########### Plot legend and description of contour plots (and max value if needed): ################
 
@@ -743,15 +743,15 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
       P.axhline(y=0.75, xmin=(0.04 + (0.23 * i)), xmax=(0.17 + (0.23 * i)), linewidth=(1. + i), color=plot.var2_colors[i])
       P.text((0.025 + (0.235 * i)), 0.3, label, fontsize=10, color=plot.var2_colors[i])
 
-   if (showmax == 'True'): 
+   if (showmax == 'True'):
       var1_max = str(np.max(var1))
       var1_label = 'Max Val.: ' + var1_max[0:6]
-      P.text(0.55, 0.55, var1_label, fontsize=10) 
+      P.text(0.55, 0.55, var1_label, fontsize=10)
 
 ########### Save figure as .png, then clear all plots from basemap template: ################
 
    fig_name = outdir + plot.name + '_' + outtime + '.png'
-   P.savefig(fig_name, format="png", bbox_inches='tight') 
+   P.savefig(fig_name, format="png", bbox_inches='tight')
 
    P.cla()
    P.sca(ax2)
@@ -771,11 +771,11 @@ def env_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
 
 #   rem_pmm_rect(r1, r2, r3, r4) #remove pmm rectangle plot - deprecated
 
-   if (showmax == 'True'): 
+   if (showmax == 'True'):
       p4.remove()
 
    if (spec == 'True'):
-      for coll in p4.collections: 
+      for coll in p4.collections:
          coll.remove()
    if (quiv == 'True'):
       barbs1.remove()
@@ -846,7 +846,7 @@ def multi_plot(map, fig, ax1, ax2, ax3, ax4, x, y, plot, var1, var2, var3, t, in
    #cbar.set_label(plot.var1_title, fontsize=10)
    #cl = P.getp(cbar.ax, 'xmajorticklabels')
    #P.setp(cl, fontsize=12)
-   for label in cbar.ax.xaxis.get_ticklabels()[:]: #only label every other contour interval 
+   for label in cbar.ax.xaxis.get_ticklabels()[:]: #only label every other contour interval
        label.set_visible(False)
 
 ########### Switch to axis 3 and set axis to be blank: ################
@@ -855,7 +855,7 @@ def multi_plot(map, fig, ax1, ax2, ax3, ax4, x, y, plot, var1, var2, var3, t, in
    cmap = cb_colors.all_greens_cmap
    norm = matplotlib.colors.BoundaryNorm(bounds, cmap.N)
    cbar = matplotlib.colorbar.ColorbarBase(ax3, cmap=cmap, norm=norm, ticks=bounds, orientation = 'horizontal', extend=plot.extend, alpha=plot.alpha)
-   for label in cbar.ax.xaxis.get_ticklabels()[:]: #only label every other contour interval 
+   for label in cbar.ax.xaxis.get_ticklabels()[:]: #only label every other contour interval
        label.set_visible(False)
 
    P.sca(ax4)
@@ -865,7 +865,7 @@ def multi_plot(map, fig, ax1, ax2, ax3, ax4, x, y, plot, var1, var2, var3, t, in
 
    cl = P.getp(cbar.ax, 'xmajorticklabels')
    P.setp(cl, fontsize=12)
-#   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval 
+#   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval
 #       label.set_visible(False)
 
    #ax3.axis('off')
@@ -965,7 +965,7 @@ def paintqc_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, radmas
 ############ then shade masked locations (if present), plot each member's data in a different color, and  ##############
 ############ shade verification objects in dark gray.  If forecast objects are not present, add label.  ##############
 
-   if (blank == 'False'): 
+   if (blank == 'False'):
       p3 = map.contourf(vx, vy, radmask, colors=[cb_colors.gray2, cb_colors.gray2], levels=[0.1, 1000.], alpha=0.8)
       members = np.arange(0,var2.shape[0])
 #      np.random.shuffle(members)
@@ -994,8 +994,8 @@ def paintqc_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, radmas
    P.cla()
    P.sca(ax1)
 
-#   if (np.max(var1) > 0.): 
-   if (blank == 'False'): 
+#   if (np.max(var1) > 0.):
+   if (blank == 'False'):
       for coll in p1.collections:
          coll.remove()
       for coll in p2.collections:
@@ -1023,7 +1023,7 @@ def painttl_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, radmas
    #template
 
    #This differs from paintqc in that it is intended to plot paintball plots from multiple
-   #forecasts valid at the same time on the same plot ('time-lagged paintball') 
+   #forecasts valid at the same time on the same plot ('time-lagged paintball')
 
    #Dependencies:
 
@@ -1084,10 +1084,10 @@ def painttl_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, radmas
 ############ then shade masked locations (if present), plot each member's data in a different color, and  ##############
 ############ shade verification objects in dark gray.  If forecast objects are not present, add label.  ##############
 
-   if (blank == 'False'): 
+   if (blank == 'False'):
       p3 = map.contourf(vx, vy, radmask, colors=[cb_colors.gray2, cb_colors.gray2], levels=[0.1, 1000.], alpha=0.8)
       members = np.arange(0,var2.shape[1])
-      for f, fcst in enumerate(fcst_times): 
+      for f, fcst in enumerate(fcst_times):
          for n, member in enumerate(members):
             p2 = map.contourf(x, y, var2[f,member,:,:], colors=[plot.var2_colors[f], plot.var2_colors[f]], levels=plot.var2_levels, alpha=0.25, extend=plot.extend)
 #            p2 = map.contour(x, y, var2[f,member,:,:], colors=[plot.var2_colors[f], plot.var2_colors[f]], levels=plot.var2_levels, alpha=0.6, linewidths=0.5, linestylyes='solid')
@@ -1120,7 +1120,7 @@ def painttl_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, radmas
    cbar.ax.set_xticklabels(fcst_times)
    cl = P.getp(cbar.ax, 'xmajorticklabels')
    P.setp(cl, fontsize=10)
-   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval 
+   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval
        label.set_visible(False)
 
 ############ Set Axis 3 to be blank: ###############
@@ -1138,8 +1138,8 @@ def painttl_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, radmas
    P.cla()
    P.sca(ax1)
 
-#   if (np.max(var1) > 0.): 
-   if (blank == 'False'): 
+#   if (np.max(var1) > 0.):
+   if (blank == 'False'):
       for coll in p1.collections:
          coll.remove()
       for coll in p2.collections:
@@ -1186,8 +1186,8 @@ def ob_ver_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, var3, r
    #var3 - 2d numpy array of the verification data to be shaded
    #radmask - 2d, binary numpy array with regions near/distant to 88d sites set to 1 (set all to 0 to turn off)
    #t - time index associated with the plot (used for website indexing)
-   #ots - real value of the total interest-weighted, object-based threat score to display in the lower-right corner 
-   #bin_ots - real value of the binary, object-based threat score to display in the lower-right corner 
+   #ots - real value of the total interest-weighted, object-based threat score to display in the lower-right corner
+   #bin_ots - real value of the binary, object-based threat score to display in the lower-right corner
    #init_label - string of forecast initialization time
    #valid_label - string of time forecast valid
    #domain - string specifying subdomain over which data is plotted (currently always 'full')
@@ -1207,7 +1207,7 @@ def ob_ver_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, var3, r
    temp_outtime = str(t * t_star + t_plus)
    if (len(temp_outtime) == 1):
       outtime = 'f00' + temp_outtime
-   elif (len(temp_outtime) == 3): 
+   elif (len(temp_outtime) == 3):
       outtime = 'f' + temp_outtime
    else:
       outtime = 'f0' + temp_outtime
@@ -1221,24 +1221,24 @@ def ob_ver_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, var3, r
 #   str_ots = str(ots)
 #   str_bin_ots = str(bin_ots)
 
-   if (len(str_pod) > 4): 
+   if (len(str_pod) > 4):
       pod_text = 'POD: ' + str_pod[0:4]
-   else: 
+   else:
       pod_text = 'POD: ' + str_pod
 
-   if (len(str_far) > 4): 
+   if (len(str_far) > 4):
       far_text = 'FAR: ' + str_far[0:4]
-   else: 
+   else:
       far_text = 'FAR: ' + str_far
 
-   if (len(str_bias) > 4): 
+   if (len(str_bias) > 4):
       bias_text = 'BIAS: ' + str_bias[0:4]
-   else: 
+   else:
       bias_text = 'BIAS: ' + str_bias
 
-   if (len(str_csi) > 4): 
+   if (len(str_csi) > 4):
       csi_text = 'CSI: ' + str_csi[0:4]
-   else: 
+   else:
       csi_text = 'CSI: ' + str_csi
 
 #   ots_text = 'OTS: ' + str_ots[0:4]
@@ -1266,9 +1266,9 @@ def ob_ver_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var2, var3, r
 ########## Plot radmask, var1 and var2 as a pcolormesh, var3 as a shaded contour: #####################
 
       p4 = map.contourf(vx, vy, radmask, colors=[cb_colors.gray2, cb_colors.gray2], levels=[0.1, 1000.], alpha=0.8)
-      p1 = map.pcolormesh(x, y, var1, cmap=cmap1, norm=norm1, vmin=np.min(bounds1), vmax=np.max(bounds1), alpha=plot.alpha)  
-      p2 = map.pcolormesh(x, y, var2, cmap=cmap2, norm=norm2, vmin=np.min(bounds2), vmax=np.max(bounds2), alpha=plot.alpha)  
-      p3 = map.contourf(vx, vy, var3, colors=plot.var3_color, levels=plot.var3_level, alpha=0.6) 
+      p1 = map.pcolormesh(x, y, var1, cmap=cmap1, norm=norm1, vmin=np.min(bounds1), vmax=np.max(bounds1), alpha=plot.alpha)
+      p2 = map.pcolormesh(x, y, var2, cmap=cmap2, norm=norm2, vmin=np.min(bounds2), vmax=np.max(bounds2), alpha=plot.alpha)
+      p3 = map.contourf(vx, vy, var3, colors=plot.var3_color, levels=plot.var3_level, alpha=0.6)
 
 ############ Add text labels of plot titles, initialization and valid forecast time, and OTS info: ###############
 
@@ -1452,7 +1452,7 @@ def ob_cent_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var3, t, ini
 ########### Set Axis 3 to blank: ################
 
    P.sca(ax3)
-   ax3.axis('off')   
+   ax3.axis('off')
 
 ########### Save figure as .png, then clear all plots from basemap template: ################
 
@@ -1478,7 +1478,7 @@ def ob_cent_plot(map, fig, ax1, ax2, ax3, x, y, vx, vy, plot, var1, var3, t, ini
 def dot_plot(map, fig, ax1, ax2, ax3, x, y, ob_x, ob_y, ob_var, ob_levels, ob_cmap, ob_label, plot, var1, var2, t, init_label, valid_label, domain, outdir, q_u, q_v, scale, t_star, t_plus, spec, quiv, showmax='False'):
 
    #This subroutine is the same as env_plot with the exception that scatter plots of OK
-   #mesonet observations differences from model fields are overlain in a scatter plot. 
+   #mesonet observations differences from model fields are overlain in a scatter plot.
 
    #Dependencies:
 
@@ -1494,8 +1494,8 @@ def dot_plot(map, fig, ax1, ax2, ax3, x, y, ob_x, ob_y, ob_var, ob_levels, ob_cm
    #ax3 - Axis 3 instance for plotting (from create_fig)
    #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted
    #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted
-   #ob_x - 1d numpy array of the x positions (basemap relative) of OK mesonet stations to be plotted 
-   #ob_y - 1d numpy array of the y positions (basemap relative) of OK mesonet stations to be plotted 
+   #ob_x - 1d numpy array of the x positions (basemap relative) of OK mesonet stations to be plotted
+   #ob_y - 1d numpy array of the y positions (basemap relative) of OK mesonet stations to be plotted
    #ob_var - 1d numpy array of OK mesonet data to be plotted
    #ob_levels - intervals for colormap of OK mesonet plot data
    #ob_cmap - colormap for OK mesonet plot data
@@ -1599,7 +1599,7 @@ def dot_plot(map, fig, ax1, ax2, ax3, x, y, ob_x, ob_y, ob_var, ob_levels, ob_cm
 
 ########## Plot and format colormap for filled contour plot in axis 2: #####################
 
-   cbar = matplotlib.colorbar.ColorbarBase(ax2, cmap=cmap, norm=norm, ticks=bounds, orientation = 'horizontal', extend=plot.extend, alpha=plot.alpha)   
+   cbar = matplotlib.colorbar.ColorbarBase(ax2, cmap=cmap, norm=norm, ticks=bounds, orientation = 'horizontal', extend=plot.extend, alpha=plot.alpha)
    cbar.set_label(plot.var1_title, fontsize=10)
    cl = P.getp(cbar.ax, 'xmajorticklabels')
    P.setp(cl, fontsize=10)
@@ -1695,9 +1695,9 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    #This subroutine is used to create the majority of the NEWS-e plots used on the website
    #(all except the paintball, object-matching, and MRMS verification plots).  If passed an
    #empty basemap and figure object as well as the data and specifications for the plot, it
-   #will create a plot over the model domain with appropriate labels, save the image us a 
+   #will create a plot over the model domain with appropriate labels, save the image us a
    #.png using the appropriate timestamp, then remove the plots from the underlying basemap
-   #template 
+   #template
 
    #Dependencies:
 
@@ -1711,15 +1711,15 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    #ax1 - Axis 1 instance for plotting (from create_fig)
    #ax2 - Axis 2 instance for plotting (from create_fig)
    #ax3 - Axis 3 instance for plotting (from create_fig)
-   #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted 
-   #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted 
+   #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted
+   #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted
    #plot - web_plot object to be plotted
    #var1 - 2d numpy array of the data to be plotted as a filled contour
    #var2 - 2d numpy array of the data to be plotted as a contour
    #t - time index associated with the plot (used for website indexing)
    #init_label - string of forecast initialization time
    #valid_label - string of time forecast valid
-   #domain - string specifying subdomain over which data is plotted (currently always 'full') 
+   #domain - string specifying subdomain over which data is plotted (currently always 'full')
    #outdir - string of directory path to save .png image in
    #q_u - if quiv=True, u values to produce quiver plot
    #q_v - if quiv=True, v values to produce quiver plot
@@ -1728,7 +1728,7 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    #t_plus - addition factor for time index (used for website indexing)
    #spec - boolean specifying if special contour level is to be plotted (e.g. 60 deg. dewpoint)
    #quiv - boolean specifying if quiver plot is to be overlain
-   #showmax - boolean specifying if scatter of domain max value and associated label are to be plotted  
+   #showmax - boolean specifying if scatter of domain max value and associated label are to be plotted
 
    #Returns:
 
@@ -1742,7 +1742,7 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    temp_outtime = str(t * t_star + t_plus)
    if (len(temp_outtime) == 1):
       outtime = 'f00' + temp_outtime
-   elif (len(temp_outtime) == 3): 
+   elif (len(temp_outtime) == 3):
       outtime = 'f' + temp_outtime
    else:
       outtime = 'f0' + temp_outtime
@@ -1782,10 +1782,10 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    t2 = fig.text(0.03, 0.945, plot.var2_title, fontsize=10, fontweight='bold', color=plot.var2_tcolor)
    t3 = fig.text(0.74, 0.965, init_label, fontsize=9)
    t4 = fig.text(0.74, 0.945, valid_label, fontsize=9)
-   
+
 ############ If domain max value is to be plotted, plot it: #################
 
-   if (showmax == 'True'): 
+   if (showmax == 'True'):
       mx, my = np.unravel_index(var1.argmax(), var1.shape)
       p4 = map.scatter(x[mx,my], y[mx,my], s=30, linewidth=0.85, marker='+', color='k', alpha=0.8)
 
@@ -1813,13 +1813,13 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    cbar.set_label(plot.var1_title, fontsize=10)
    cl = P.getp(cbar.ax, 'xmajorticklabels')
    P.setp(cl, fontsize=10)
-   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval 
+   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every other contour interval
        label.set_visible(False)
 
 ########### Switch to axis 3 and set axis to be blank: ################
 
    P.sca(ax3)
-   ax3.axis('off')   
+   ax3.axis('off')
 
 ########### Plot legend and description of contour plots (and max value if needed): ################
 
@@ -1830,15 +1830,15 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
       P.axhline(y=0.75, xmin=(0.04 + (0.5 * i)), xmax=(0.4 + (0.45 * i)), linewidth=(2.5), color=plot.var2_colors[i])
       P.text((0.025 + (0.5 * i)), 0.25, label, fontsize=10, color=plot.var2_colors[i])
 
-   if (showmax == 'True'): 
+   if (showmax == 'True'):
       var1_max = str(np.max(var1))
       var1_label = 'Max Val.: ' + var1_max[0:6]
-      P.text(0.55, 0.55, var1_label, fontsize=10) 
+      P.text(0.55, 0.55, var1_label, fontsize=10)
 
 ########### Save figure as .png, then clear all plots from basemap template: ################
 
    fig_name = outdir + plot.name + '_' + outtime + '.png'
-   P.savefig(fig_name, format="png", bbox_inches='tight') 
+   P.savefig(fig_name, format="png", bbox_inches='tight')
 
    P.cla()
    P.sca(ax2)
@@ -1858,11 +1858,11 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
 
 #   rem_pmm_rect(r1, r2, r3, r4) #remove pmm rectangle plot - deprecated
 
-   if (showmax == 'True'): 
+   if (showmax == 'True'):
       p4.remove()
 
    if (spec == 'True'):
-      for coll in p4.collections: 
+      for coll in p4.collections:
          coll.remove()
    if (quiv == 'True'):
       q1.remove()
@@ -1871,9 +1871,9 @@ def mem_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
 
 def mrms_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, valid_label, domain, outdir, fnum, showmax='False'):
 
-   #This subroutine will plot MRMS data on the NEWS-e grid for comparison.  Plots of 
+   #This subroutine will plot MRMS data on the NEWS-e grid for comparison.  Plots of
    #composite reflectivity, with Az. shear rotation tracks, and NWS warnings and LSRs
-   #will be produced. 
+   #will be produced.
 
    #Dependencies:
 
@@ -2002,7 +2002,7 @@ def mrms_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, va
 
 def plot_warn(map, fig, ax1, ax2, ax3, shapefile, start_time, end_time, svr_color, tor_color, ff='True'):
 
-   #This subroutine will plot NWS warning products from shapefiles downloaded from the 
+   #This subroutine will plot NWS warning products from shapefiles downloaded from the
    #Iowa State Mesonet archive:  https://mesonet.agron.iastate.edu/request/gis/watchwarn.phtml
 
    #Dependencies:
@@ -2022,7 +2022,7 @@ def plot_warn(map, fig, ax1, ax2, ax3, shapefile, start_time, end_time, svr_colo
    #svr_color - color to plot svr warnings
    #tor_color - color to plot tor warnings
    #ff - boolean for whether or not to plot flash flood warnings instead of svr/tor
-   
+
    #Returns:
 
    #Either the svr/tor or ff plot objects
@@ -2162,11 +2162,11 @@ def plot_lsr(map, fig, ax1, ax2, ax3, shapefile, init_time, time, plot_h='True',
 
    hail = []
    wind = []
-   tornado = [] 
+   tornado = []
 
 ########### For each storm report in shapefile, scatter with the appropriate symbol if  ################
 ########### report occurs between forecast initialization and valid time:   ################
-   
+
    for info, shape in zip(map.lsr_info, map.lsr):
       if ((info['TYPECODE'] == 'H') and (plot_h == 'True')):
          temp_inithr = info['VALID'][8:10]
@@ -2215,7 +2215,7 @@ def plot_lsr(map, fig, ax1, ax2, ax3, shapefile, init_time, time, plot_h='True',
 
 def remove_warn(var):
 
-   #This subroutine will remove NWS warning plots from a basemap 
+   #This subroutine will remove NWS warning plots from a basemap
 
    #Dependencies:
 
@@ -2241,21 +2241,21 @@ def remove_warn(var):
 
 def remove_lsr(hail, wind, tornado):
 
-   #This subroutine will remove NWS LSR plots from a basemap 
+   #This subroutine will remove NWS LSR plots from a basemap
 
    #Dependencies:
-   
+
    #python:  basemap, matplotlib, pyplot
    #plotting_cbook:  mymap, create_fig, web_plot, plot_LSR
 
    #Input:
-   
+
    #hail - List of Basemap hail LSR plots to remove
    #wind - List of Basemap wind LSR plots to remove
    #tornado - List of Basemap tornado LSR plots to remove
 
    #Returns:
-   
+
    #NOTHING!
 
 #######################
@@ -2275,13 +2275,13 @@ def pmm_rectangle(map, fig, x, y, plot):
 
    #NO LONGER USED!
    #This subroutine will draw a rectangle around the domain where probability-matched
-   #mean values are available    
-   
+   #mean values are available
+
    #Dependencies:
-   
+
    #python:  basemap, matplotlib, pyplot
    #plotting_cbook:  mymap, create_fig, web_plot
-   
+
    #Input:
 
    #map - Basemap instance for plotting (from mymap)
@@ -2289,9 +2289,9 @@ def pmm_rectangle(map, fig, x, y, plot):
    #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted
    #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted
    #plot - web_plot object to be plotted
-   
+
    #Returns:
-   
+
    #r1, r2, r3, r4:  plot variables for each side of the rectangle
 
 #######################
@@ -2329,7 +2329,7 @@ def rem_pmm_rect(r1, r2, r3, r4):
    #plotting_cbook:  mymap, create_fig, web_plot
 
    #Input:
- 
+
    #r1 - r4:  Plot variables for each side of the rectangle
 
    #Returns:
@@ -2411,7 +2411,7 @@ def sat_plot(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label, val
    cl = P.getp(cbar.ax, 'xmajorticklabels')
    P.setp(cl, fontsize=10)
    if (cmap.N < 30 ):
-       for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every th contour interval 
+       for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #only label every th contour interval
           label.set_visible(False)
    if (cmap.N >= 30 ):
        for label in cbar.ax.xaxis.get_ticklabels()[1::2]:
@@ -2466,9 +2466,9 @@ def env_plot_rain(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label
    #This subroutine is used to create the majority of the NEWS-e plots used on the website
    #(all except the paintball, object-matching, and MRMS verification plots).  If passed an
    #empty basemap and figure object as well as the data and specifications for the plot, it
-   #will create a plot over the model domain with appropriate labels, save the image us a 
+   #will create a plot over the model domain with appropriate labels, save the image us a
    #.png using the appropriate timestamp, then remove the plots from the underlying basemap
-   #template 
+   #template
 
    #Dependencies:
 
@@ -2482,15 +2482,15 @@ def env_plot_rain(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label
    #ax1 - Axis 1 instance for plotting (from create_fig)
    #ax2 - Axis 2 instance for plotting (from create_fig)
    #ax3 - Axis 3 instance for plotting (from create_fig)
-   #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted 
-   #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted 
+   #x - 2d numpy array of x-axis, basemap-relative locations of data to be plotted
+   #y - 2d numpy array of y axis, basemap-relative locations of data to be plotted
    #plot - web_plot object to be plotted
    #var1 - 2d numpy array of the data to be plotted as a filled contour
    #var2 - 2d numpy array of the data to be plotted as a contour
    #t - time index associated with the plot (used for website indexing)
    #init_label - string of forecast initialization time
    #valid_label - string of time forecast valid
-   #domain - string specifying subdomain over which data is plotted (currently always 'full') 
+   #domain - string specifying subdomain over which data is plotted (currently always 'full')
    #outdir - string of directory path to save .png image in
    #q_u - if quiv=True, u values to produce quiver plot
    #q_v - if quiv=True, v values to produce quiver plot
@@ -2499,7 +2499,7 @@ def env_plot_rain(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label
    #t_plus - addition factor for time index (used for website indexing)
    #spec - boolean specifying if special contour level is to be plotted (e.g. 60 deg. dewpoint)
    #quiv - boolean specifying if quiver plot is to be overlain
-   #showmax - boolean specifying if scatter of domain max value and associated label are to be plotted  
+   #showmax - boolean specifying if scatter of domain max value and associated label are to be plotted
 
    #Returns:
 
@@ -2593,7 +2593,7 @@ def env_plot_rain(map, fig, ax1, ax2, ax3, x, y, plot, var1, var2, t, init_label
    cbar.set_label(plot.var1_title, fontsize=8)
    cl = P.getp(cbar.ax, 'xmajorticklabels')
    P.setp(cl, fontsize=8)
-   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #label every other contour interval 
+   for label in cbar.ax.xaxis.get_ticklabels()[1::2]: #label every other contour interval
        label.set_visible(True)
 
 ########### Switch to axis 3 and set axis to be blank: ################

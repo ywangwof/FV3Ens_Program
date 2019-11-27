@@ -32,7 +32,7 @@ else:
    outdir = options.outdir
    t = options.t
 
-neighborhood               = 15                 #15 gridpoint radius for probability matched mean 
+neighborhood               = 15                 #15 gridpoint radius for probability matched mean
 radius_max                 = 5
 radius_gauss               = 2                  #grid point radius of convolution operator
 
@@ -40,15 +40,15 @@ kernel                     = gauss_kern(radius_gauss)   #convolution operator ke
 
 ############################ Find WRFOUT files to process: #################################
 
-### Find member dirs ### 
+### Find member dirs ###
 
-ne = 18
+ne = 40
 member_dirs = []
 
 member_dirs_temp = os.listdir(indir)
 
 for d, dir in enumerate(member_dirs_temp):
-   if (dir[0:3] == 'ENS'):
+   if (dir[0:4] == 'mem_'):
       member_dirs.append(dir)
 
 member_dirs.sort() #sorts as members [1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9]
@@ -56,7 +56,7 @@ member_dirs.sort() #sorts as members [1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 
 files = []
 
 for n in range(0, len(member_dirs)):
-   temp_dir = os.path.join(indir, member_dirs[n])
+   temp_dir = os.path.join(indir, member_dirs[n],'summary')
 
    member_files = []
    temp_files = os.listdir(temp_dir)
@@ -70,7 +70,6 @@ for n in range(0, len(member_dirs)):
    files.append(os.path.join(temp_dir, member_files[t]))
 
 files.sort()  #should have sorted directory paths to each ensemble file to be processed
-
 
 ##################### Process WRFOUT Files ########################
 
@@ -108,10 +107,12 @@ for f, infile in enumerate(files):
       timestep = str(t)
       if (len(timestep) == 1):
          timestep = '0' + timestep
-      outname = "news-e_ENV_" + timestep + "_" + init_date + "_" + init_time + "_" + valid_time + ".nc"         #output file
-      output_path = outdir + outname
+      outname = "fv3sar_ENV_" + timestep + "_" + init_date + "_" + init_time + "_" + valid_time + ".nc"         #output file
+      output_path = os.path.join(outdir,'enspost')
+      if not os.path.lexists(output_path): os.mkdir(output_path)
+      output_path =  os.path.join(outdir,'enspost',outname)
 
-      ### Get grid/projection info ### 
+      ### Get grid/projection info ###
 
       dx = fin.DX                                             #east-west grid spacing (m)
       dy = fin.DY                                             #north-south grid spacing (m)
@@ -128,12 +129,12 @@ for f, infile in enumerate(files):
       ny = xlat.shape[0]
       nx = xlat.shape[1]
 
-      ### Calculate initial and valid time in seconds ### 
+      ### Calculate initial and valid time in seconds ###
 
       init_time_seconds = int(init_hr) * 3600. + int(init_min) * 60.
       valid_time_seconds = int(valid_hr) * 3600. + int(valid_min) * 60.
 
-      if (valid_time_seconds < 25000.):         #Convert values past 0000 UTC, assumes forecast not run past ~7 UTC 
+      if (valid_time_seconds < 25000.):         #Convert values past 0000 UTC, assumes forecast not run past ~7 UTC
          valid_time_seconds = valid_time_seconds + 86400.
 
 ################################ Initialize output variables ########################################
@@ -160,7 +161,7 @@ for f, infile in enumerate(files):
 
 #      pbl_hgt = np.zeros((ne,ny,nx))                             #PBL height (m)  #not in WRFWOF files yet
 
-      dbz_col_max = np.zeros((ne,ny,nx))                         #Simulated column max reflectivity (dBZ)     
+      dbz_col_max = np.zeros((ne,ny,nx))                         #Simulated column max reflectivity (dBZ)
 
       th_v_100mb = np.zeros((ne,ny,nx))                           #lowest 100mb mixed layer virtual potential temperature (K)
       th_e_100mb = np.zeros((ne,ny,nx))                           #lowest 100mb mixed layer equivalent potential temperature (K)
@@ -180,16 +181,16 @@ for f, infile in enumerate(files):
       bunk_r_v = np.zeros((ne,ny,nx))                            #v-component of the Bunkers storm motion (right mover) (m/s)
       srh_0to1 = np.zeros((ne,ny,nx))                            #0-1 km AGL storm-relative helicity (m^2/s^2)
       srh_0to3 = np.zeros((ne,ny,nx))                            #0-3 km AGL storm-relative helicity (m^2/s^2)
-      u_500 = np.zeros((ne,ny,nx))                               #u-component of the wind at 500 m AGL (m/s)      
-      v_500 = np.zeros((ne,ny,nx))                               #v-component of the wind at 500 m AGL (m/s)      
+      u_500 = np.zeros((ne,ny,nx))                               #u-component of the wind at 500 m AGL (m/s)
+      v_500 = np.zeros((ne,ny,nx))                               #v-component of the wind at 500 m AGL (m/s)
 
       stp_100mb = np.zeros((ne,ny,nx))                            #Significant Tornado Parameter for 100mb mixed layer
 
-      sw_down = np.zeros((ne,ny,nx))	          	         #Downward flux of shortwave radiation at the ground (W m^-2) 
+      sw_down = np.zeros((ne,ny,nx))	          	         #Downward flux of shortwave radiation at the ground (W m^-2)
       iwp = np.zeros((ne,ny,nx))	          	         #Cloud ice water path (ice water path units)
       lwp = np.zeros((ne,ny,nx))	          	         #Cloud liquid water path (liquid water path units)
-      pw = np.zeros((ne,ny,nx))	        		         #Precipitable water (in) 
-      ctp = np.zeros((ne,ny,nx))	        	         #Cloud top pressure (hPa) 
+      pw = np.zeros((ne,ny,nx))	        		         #Precipitable water (in)
+      ctp = np.zeros((ne,ny,nx))	        	         #Cloud top pressure (hPa)
 
       u_dvg = np.zeros((ne,ny,nx))                               #u-component of upper-level (400-250 hPa) divergence (m/s) --- BCM
       v_dvg = np.zeros((ne,ny,nx))                               #v-component of upper-level (400-250 hPa) divergence (m/s) --- BCM
@@ -218,7 +219,7 @@ for f, infile in enumerate(files):
    p_sfc_temp = fin.variables["psfc"][:,:]
    p_sfc_temp = p_sfc_temp / 100.
    p_sfc[f,:,:] = p_sfc_temp                                    #convert to hpa
-  
+
    t_2[f,:,:] = fin.variables["t2"][:,:]
    th_2 = fin.variables["th2"][:,:]
    qv_2_temp = fin.variables["q2"][:,:]
@@ -276,7 +277,7 @@ for f, infile in enumerate(files):
    z_agl = z - hgt
    p = (p + pb) / 100.                                     #pressure (hPa)
    temp = calc_t(th, p)
-   
+
 ######### Sfc/2m layer values #########
 
    t_v = calc_thv(temp, qv, qt)
@@ -334,7 +335,7 @@ for f, infile in enumerate(files):
 ###### Boundary-layer values ######
 
    pbl_mfc[f,:,:] = calc_bl_moisture_conv(p, uc, vc, qv, p_sfc_temp)
-   neigh_pbl_mfc = pbl_mfc * 0. 
+   neigh_pbl_mfc = pbl_mfc * 0.
 
    for n in range(0, pbl_mfc.shape[0]):
       pbl_mfc_temp = get_local_maxima2d(pbl_mfc[n,:,:], radius_max)
@@ -486,6 +487,7 @@ tdf_700p = (td_700p - 273.15) * 1.8 + 32.     #convert to deg. F
 ### Create file and dimensions: ###
 
 try:
+   print "Creating %s" % output_path
    fout = netCDF4.Dataset(output_path, "w")
 except:
    print "Could not create %s!\n" % output_path
@@ -731,11 +733,11 @@ sw_down_var.units = "W/m^2"
 
 iwp_var = fout.createVariable('iwp', 'f4', ('NE','NY','NX',))
 iwp_var.long_name = "Cloud ice water path"
-iwp_var.units = "" 
+iwp_var.units = ""
 
 lwp_var = fout.createVariable('lwp', 'f4', ('NE','NY','NX',))
 lwp_var.long_name = "Cloud liquid water path"
-lwp_var.units = "" 
+lwp_var.units = ""
 
 ccomp_dz_var = fout.createVariable('comp_dz', 'f4', ('NE','NY','NX',))
 ccomp_dz_var.long_name = "Mean composite reflectivity (93 km neighborhood)"
@@ -814,13 +816,13 @@ fout.variables['stp_ml'][:] = stp_100mb
 
 fout.variables['comp_dz_pmm'][:] = pmm_dz
 
-fout.variables['comp_dz'][:] = dbz_col_max 
+fout.variables['comp_dz'][:] = dbz_col_max
 
 fout.variables['sw_down'][:] = sw_down
 fout.variables['iwp'][:] = iwp
 fout.variables['lwp'][:] = lwp
 
-### Close output file ### 
+### Close output file ###
 
 fout.close()
 del fout

@@ -1,20 +1,29 @@
 #/bin/bash
 
 HH=$1     # forecast starting hour
-NN=$2     # Number of ensember members
+NN=${2-40}     # Number of ensember members
 
-DATE=20190520
+if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
+  echo "$0 YYYYMMDDHH [NN]"
+  exit
+fi
+
+DATE=${1:0:8}
+HH=${1:8:2}
+
 WRKDIR=/scratch/ywang/EPIC/GDAS
 
 cd $WRKDIR
 
 if [[ "${HH}" < "18" ]]; then
-  DATE=$(date -d "$DATE 1 day" +%Y%m%d)
+  RDATE=$(date -d "$DATE 1 day ago" +%Y%m%d)
+else
+  RDATE=$DATE
 fi
 
-GDADDIR="/oldscratch/nyussouf/GDAS"
+GDADDIR="/oldscratch/nyussouf/GDAS/20190520/$RDATE"
 
-for m in $(seq 1 1 $2); do
+for m in $(seq 1 1 $NN); do
   mem=$(printf "%03d" $m)
 
   if [[ ! -d ${DATE}${HH}_mem${mem} ]]; then

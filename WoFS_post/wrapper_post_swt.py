@@ -49,17 +49,17 @@ pool = Pool(processes=(24))              # set up a queue to run
 
 ##### process swath files from completed ens files
 
-fcst_times = np.arange(fcst_nt) 
+fcst_times = np.arange(fcst_nt)
 process = fcst_times * 0
 counter = 0
 
 #time.sleep(120)  #give post_ens.py a head start
 
 
-while (np.min(process) == 0): 
+while (np.min(process) == 0):
    counter = counter + 1
    print 'iteration: ', counter
-   for t in fcst_times: 
+   for t in fcst_times:
       str_t = str(t)
       if (len(str_t) == 1):
          str_t = '0' + str_t
@@ -68,15 +68,14 @@ while (np.min(process) == 0):
       summary_files_temp.sort()
 
       for f, file in enumerate(summary_files_temp):
-	 print(file)
          if ((file[-28:-25] == 'ENS') and (file[-24:-22] == str_t) and (process[t] == 0)):
             print "WORKING ON FILE %s \n" % file
             process[t] = 1
             cmd = "python news_e_post_swath.py -d %s -t %d -n %d " % (outdir, t, fcst_nt)
             pool.apply_async(run_script, (cmd,))
             time.sleep(2)
-            
-   #time.sleep(5) 
+
+   #time.sleep(5)
 
 
 cmd = "python news_e_post_4hr.py -d %s -t %d -n %d " % (outdir, fcst_nt, fcst_nt)

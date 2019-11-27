@@ -43,7 +43,7 @@ radius_gauss               = 2			#grid point radius of convolution operator
 
 kernel                     = gauss_kern(radius_gauss)   #convolution operator kernel
 
-neighborhood               = 15                 #15 gridpoint radius for probability matched mean 
+neighborhood               = 15                 #15 gridpoint radius for probability matched mean
 
 comp_dz_thresh             = [35., 40., 45., 50., 55., 60.]		#40 dBZ
 rain_thresh                = [0.01, 0.25, 0.5, 1., 2., 3.]		#0.5 inches
@@ -59,11 +59,11 @@ perc                       = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]       
 
 ############################ Find WRFOUT files to process: #################################
 
-### Find ENS Summary files ### 
+### Find ENS Summary files ###
 
-ne = 18
+ne = 40
 
-############hack to try and fix realtime for the last timestep: 
+############hack to try and fix realtime for the last timestep:
 #if (t == fcst_nt):
 #   lastfile = 0
 #   while (lastfile == 0):
@@ -86,20 +86,20 @@ ne = 18
 ens_files = []
 summary_files_temp = os.listdir(summary_dir)
 
-for f, file in enumerate(summary_files_temp): 
+for f, file in enumerate(summary_files_temp):
    if (file[-28:-25] == 'ENS'):                               #assumes filename format of: news-e_ENS_20170516_2200_0000.nc
-      ens_files.append(file) 
-      
-ens_files.sort() 
+      ens_files.append(file)
+
+ens_files.sort()
 for tt in range(0, t):
    ens_file = ens_files[tt]
 
    infile = os.path.join(summary_dir, ens_file)
 
-   if (tt == t-1): 
+   if (tt == t-1):
    ### Set output path ###
       outname = ens_file[0:7] + 'SUM' + ens_file[10:]
-      output_path = summary_dir + outname
+      output_path = os.path.join(summary_dir, outname)
 
    try:                                                 #open WRFOUT file
       fin = netCDF4.Dataset(infile, "r")
@@ -135,7 +135,7 @@ for tt in range(0, t):
 #      soil_moisture                      = fin.variables["soil_moisture"][:,:,:]
       comp_dz                            = fin.variables["comp_dz"][:,:,:]
       w_up                               = fin.variables["w_up"][:,:,:]
-      ws_80                              = fin.variables["ws_80"][:,:,:]
+      #ws_80                              = fin.variables["ws_80"][:,:,:]
       hail                               = fin.variables["hail"][:,:,:]
       hailcast                           = fin.variables["hailcast"][:,:,:]
 #      rain_sat                           = np.where(soil_moisture > 0.95, rain, 0.)
@@ -147,7 +147,7 @@ for tt in range(0, t):
 
       pmm_dz[:,:] = prob_match_mean(temp_dz[:,:,:], temp_mean_dz[:,:], neighborhood)
 
-   else: 
+   else:
 
       uh_2to5                            = np.where((fin.variables["uh_2to5"][:,:,:] > uh_2to5), fin.variables["uh_2to5"][:,:,:], uh_2to5)
       uh_0to2                            = np.where((fin.variables["uh_0to2"][:,:,:] > uh_0to2), fin.variables["uh_0to2"][:,:,:], uh_0to2)
@@ -164,7 +164,7 @@ for tt in range(0, t):
 #      rain_sat                           = rain_sat + rain_sat_temp
 
       w_up                               = np.where((fin.variables["w_up"][:,:,:] > w_up), fin.variables["w_up"][:,:,:], w_up)
-      ws_80                              = np.where((fin.variables["ws_80"][:,:,:] > ws_80), fin.variables["ws_80"][:,:,:], ws_80)
+      #ws_80                              = np.where((fin.variables["ws_80"][:,:,:] > ws_80), fin.variables["ws_80"][:,:,:], ws_80)
       hail                               = np.where((fin.variables["hail"][:,:,:] > hail), fin.variables["hail"][:,:,:], hail)
       hailcast                           = np.where((fin.variables["hailcast"][:,:,:] > hailcast), fin.variables["hailcast"][:,:,:], hailcast)
 
@@ -180,7 +180,7 @@ comp_dz_perc = calc_perc_products(comp_dz, perc, 1, kernel)
 rain_perc = calc_perc_products(rain, perc, 1, kernel)
 #soil_moisture_perc = calc_perc_products(soil_moisture, perc, 1, kernel)
 #rain_sat_perc = calc_perc_products(rain_sat, perc, 1, kernel)
-ws_80_perc = calc_perc_products(ws_80, perc, radius_max_9km, kernel)
+#ws_80_perc = calc_perc_products(ws_80, perc, radius_max_9km, kernel)
 w_up_perc = calc_perc_products(w_up, perc, radius_max_9km, kernel)
 hail_perc = calc_perc_products(hail, perc, radius_max_9km, kernel)
 hailcast_perc = calc_perc_products(hailcast, perc, radius_max_9km, kernel)
@@ -192,7 +192,7 @@ comp_dz_prob = calc_prob_products(comp_dz, comp_dz_thresh, 1, kernel)
 rain_prob = calc_prob_products(rain, rain_thresh, 1, kernel)
 #soil_moisture_prob = calc_prob_products(soil_moisture, soil_moisture_thresh, 1, kernel)
 #rain_sat_prob = calc_prob_products(rain_sat, rain_thresh, 1, kernel)
-ws_80_prob = calc_prob_products(ws_80, ws_80_thresh, radius_max_9km, kernel)
+#ws_80_prob = calc_prob_products(ws_80, ws_80_thresh, radius_max_9km, kernel)
 w_up_prob = calc_prob_products(w_up, w_up_thresh, radius_max_9km, kernel)
 hail_prob = calc_prob_products(hail, hail_thresh, radius_max_9km, kernel)
 hailcast_prob = calc_prob_products(hailcast, hail_thresh, radius_max_9km, kernel)
@@ -204,7 +204,7 @@ mean_comp_dz = np.mean(comp_dz, axis=0)
 mean_rain = np.mean(rain, axis=0)
 #mean_soil_moisture = np.mean(soil_moisture, axis=0)
 #mean_rain_sat = np.mean(rain_sat, axis=0)
-mean_ws_80 = np.mean(ws_80, axis=0)
+#mean_ws_80 = np.mean(ws_80, axis=0)
 mean_w_up = np.mean(w_up, axis=0)
 mean_hail = np.mean(hail, axis=0)
 mean_hailcast = np.mean(hailcast, axis=0)
@@ -216,7 +216,7 @@ comp_dz_pmm = prob_match_mean(comp_dz, mean_comp_dz, neighborhood)
 rain_pmm = prob_match_mean(rain, mean_rain, neighborhood)
 #soil_moisture_pmm = prob_match_mean(soil_moisture, mean_soil_moisture, neighborhood)
 #rain_sat_pmm = prob_match_mean(rain_sat, mean_rain_sat, neighborhood)
-ws_80_pmm = prob_match_mean(ws_80, mean_ws_80, neighborhood)
+#ws_80_pmm = prob_match_mean(ws_80, mean_ws_80, neighborhood)
 w_up_pmm = prob_match_mean(w_up, mean_w_up, neighborhood)
 hail_pmm = prob_match_mean(hail, mean_hail, neighborhood)
 hailcast_pmm = prob_match_mean(hailcast, mean_hailcast, neighborhood)
@@ -249,7 +249,7 @@ setattr(fout,'TRUE_LAT2',true_lat_2)
 setattr(fout,'PROJECTION','Lambert Conformal')
 setattr(fout,'INIT_TIME_SECONDS',init_time_seconds)
 setattr(fout,'VALID_TIME_SECONDS',valid_time_seconds)
-setattr(fout,'FORECAST_TIME_STEP',t) 
+setattr(fout,'FORECAST_TIME_STEP',t)
 
 ### Create variables ###
 
@@ -299,9 +299,9 @@ w_up_pperc = fout.createVariable('w_up_perc', 'f4', ('NP','NY','NX',))
 w_up_pperc.long_name = "Accumulated ensemble percentile values of updraft velocity"
 w_up_pperc.units = "m/s"
 
-ws_80_pperc = fout.createVariable('ws_80_perc', 'f4', ('NP','NY','NX',))
-ws_80_pperc.long_name = "Accumulated ensemble percentile values of 80-m wind speed"
-ws_80_pperc.units = "kts"
+#ws_80_pperc = fout.createVariable('ws_80_perc', 'f4', ('NP','NY','NX',))
+#ws_80_pperc.long_name = "Accumulated ensemble percentile values of 80-m wind speed"
+#ws_80_pperc.units = "kts"
 
 hail_pperc = fout.createVariable('hail_perc', 'f4', ('NP','NY','NX',))
 hail_pperc.long_name = "Accumulated ensemble percentile values of max hail size at the surface (NSSL 2-moment)"
@@ -349,9 +349,9 @@ w_up_pprob = fout.createVariable('w_up_prob', 'f4', ('NR','NY','NX',))
 w_up_pprob.long_name = "Accumulated ensemble probabilities of updraft velocity"
 w_up_pprob.units = "%"
 
-ws_80_pprob = fout.createVariable('ws_80_prob', 'f4', ('NR','NY','NX',))
-ws_80_pprob.long_name = "Accumulated ensemble probabilites of 80-m wind speed"
-ws_80_pprob.units = "%"
+#ws_80_pprob = fout.createVariable('ws_80_prob', 'f4', ('NR','NY','NX',))
+#ws_80_pprob.long_name = "Accumulated ensemble probabilites of 80-m wind speed"
+#ws_80_pprob.units = "%"
 
 hail_pprob = fout.createVariable('hail_prob', 'f4', ('NR','NY','NX',))
 hail_pprob.long_name = "Accumulated ensemble probabilites of max hail size at the surface (NSSL 2-moment)"
@@ -395,9 +395,9 @@ w_up_ppmm = fout.createVariable('w_up_pmm', 'f4', ('NY','NX',))
 w_up_ppmm.long_name = "Updraft velocity probability matched mean"
 w_up_ppmm.units = "m/s"
 
-ws_80_ppmm = fout.createVariable('ws_80_pmm', 'f4', ('NY','NX',))
-ws_80_ppmm.long_name = "80-m wind speed probability matched mean"
-ws_80_ppmm.units = "m/s"
+#ws_80_ppmm = fout.createVariable('ws_80_pmm', 'f4', ('NY','NX',))
+#ws_80_ppmm.long_name = "80-m wind speed probability matched mean"
+#ws_80_ppmm.units = "m/s"
 
 hail_ppmm = fout.createVariable('hail_pmm', 'f4', ('NY','NX',))
 hail_ppmm.long_name = "Max hail size at the surface (NSSL 2-moment) probability matched mean"
@@ -421,7 +421,7 @@ fout.variables['rain_perc'][:] = rain_perc
 #fout.variables['rain_sat_perc'][:] = rain_sat_perc
 #fout.variables['soil_moisture_perc'][:] = soil_moisture_perc
 fout.variables['w_up_perc'][:] = w_up_perc
-fout.variables['ws_80_perc'][:] = ws_80_perc
+#fout.variables['ws_80_perc'][:] = ws_80_perc
 fout.variables['hail_perc'][:] = hail_perc
 fout.variables['hailcast_perc'][:] = hailcast_perc
 
@@ -435,7 +435,7 @@ fout.variables['rain_prob'][:] = rain_prob
 #fout.variables['rain_sat_prob'][:] = rain_sat_prob
 #fout.variables['soil_moisture_prob'][:] = soil_moisture_prob
 fout.variables['w_up_prob'][:] = w_up_prob
-fout.variables['ws_80_prob'][:] = ws_80_prob
+#fout.variables['ws_80_prob'][:] = ws_80_prob
 fout.variables['hail_prob'][:] = hail_prob
 fout.variables['hailcast_prob'][:] = hailcast_prob
 
@@ -447,11 +447,11 @@ fout.variables['rain_pmm'][:] = rain_pmm
 #fout.variables['rain_sat_pmm'][:] = rain_sat_pmm
 #fout.variables['soil_moisture_pmm'][:] = soil_moisture_pmm
 fout.variables['w_up_pmm'][:] = w_up_pmm
-fout.variables['ws_80_pmm'][:] = ws_80_pmm
+#fout.variables['ws_80_pmm'][:] = ws_80_pmm
 fout.variables['hail_pmm'][:] = hail_pmm
 fout.variables['hailcast_pmm'][:] = hailcast_pmm
 
-### Close output file ### 
+### Close output file ###
 
 fout.close()
 del fout

@@ -9,87 +9,68 @@
 #SBATCH --cpus-per-task=24
 #SBATCH -t 01:00:00
 
-set echo
+#set echo
 
 # cd to directory where job was submitted from
-cd /oldscratch/larissa.reames/fv3sar_post
+set base_dir = /oldscratch/ywang/EPIC/Program/WoFS_post
+cd ${base_dir}
+
 
 #$SLURM_SUBMIT_DIR
 
 setenv MALLOC_MMAP_MAX 0
 setenv MALLOC_TRIM_THRESHOLD 536870912
 
-# User defined variables: 
+source /home/louis.wicker/anaconda2/etc/profile.d/conda.csh
+conda activate wof
+set PYTHON = /home/louis.wicker/anaconda2/envs/wof/bin/python
 
-set date = 20180501
-set base_dir = /oldscratch/larissa.reames/fv3sar_post/
-set fcst_base = /oldscratch/larissa.reames/fv3sar_post/wrf_lookalikes/
-#set fcst_base = /scratch/jtti/realtime/FCST/
+# User defined variables:
 
-#set times = (1900 1930 2000 2030 2100 2130 2200 2230 2300 2330 0000 0030 0100 0130 0200 0230 0300)
-#set nt = (72 36 72 36 72 36 72 36 72 36 72 36 72 36 72 36 72)
-
-#set times = (1600 1700 1800 1900 2000 2100 2200 2300 0000 0100 0200 0300 0400)
-#set nt = (72 72 72 72 72 72 72 72 72 72 72 72 72)
-
-#set times = (1900 2000 2100 2200 2300 0000)
-#set nt = ( 72 60 48 36 24 12 )
-
-set times = (2100)
-set nt = (48)
-
-# Build directories needed: 
-
-set fcst = $fcst_base$date"_NOTENDLIM_DT30_DIFFSPLIT/"
-set summary = "/oldscratch/larissa.reames/fv3sar_post/summary/"$date"_NOTENDLIM_DT30_DIFFSPLIT/"
-set image = "/www/wof.nssl.noaa.gov/newse_research/"$date"_FV3SAR_NOTENDLIM_DT30_DIFFSPLIT/"
-set flagdir = $base_dir"flags/"$date"/"
-set mapfile = $base_dir"basemap/news-e_MAP_"$date"_1900.pickle"
-
-if (! -d $image) then
-  mkdir $image
+if ($#argv < 1) then
+  echo "usage $0 YYYYMMDDHH"
+  exit
 endif
 
-if ( ! -d $summary) then
-  mkdir $summary
-endif
-set flagdir = $base_dir"flags/"$date
+set datestr = $1
+set fcstdate = `echo $datestr | awk '{print substr($0,1,8)}'`
+set fcsthour = `echo $datestr | awk '{print substr($0,9,2)}'`
+#set date = 20190520
+set fcst_base = /scratch/ywang/EPIC/test_runs
 
-if ( ! -d $flagdir) then
-  mkdir $flagdir
-endif
+set times = ($fcsthour)
+set nt = (37)
 
-# Run wrapper script for forecast: 
+# Build directories needed:
+
+# Run wrapper script for forecast:
 
 sleep 1
 
 set i = 1
 
 foreach dir ($times)
-   set fcstdir = $fcst$dir"/"
-   set flagfile = $flagdir"/"$dir"_timestep.txt"
-   set tempsumdir = $summary$dir"/"
-   set tempimagedir = $image$dir"/"
-
-   echo $fcstdir
-   echo $flagfile
-   echo $tempsumdir
-   echo $tempimagedir
+   set tempsumdir   = "$fcst_base/$fcstdate$dir/enspost/"
+   set tempimagedir = "/scratch/ywang/EPIC/test_runs/$fcstdate$dir/images/"
+   set mapfile      = "$fcst_base/$fcstdate$dir/basemap/fv3sar_MAP_${fcstdate}_${fcsthour}00.pickle"
 
    if ( ! -d $tempimagedir) then
      mkdir $tempimagedir
    endif
 
    set tempnt = $nt[$i]
+
+   echo $tempsumdir
+   echo $tempimagedir
    echo $tempnt
 
-   if ( -d $fcstdir ) then
-      if ( ! -e $flagfile ) then
-         touch $flagfile 
-         python wrapper_timestep.py -d $tempsumdir -o $tempimagedir -m $mapfile -e $tempnt 
+   #if ( -d $fcstdir ) then
+   #  if ( ! -e $flagfile ) then
+         #touch $flagfile
+         $PYTHON wrapper_timestep.py -d $tempsumdir -o $tempimagedir -m $mapfile -e $tempnt
          #exit(0)
-      endif
-   endif 
+      #endif
+   #endif
    @ i++
 end
 

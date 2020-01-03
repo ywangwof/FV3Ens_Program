@@ -46,12 +46,12 @@ else:
    mapname = options.mapname
    t = options.t
 
-#path to pickled map instance for plotting: 
+#path to pickled map instance for plotting:
 #mapname = '/scratch2/patrick.skinner/images/map.pickle'
 
 #################################### User-Defined Variables:  #####################################################
 
-domain                     = 'full'        #vestigial variable that's still needed in the plotting subroutines ... 
+domain                     = 'full'        #vestigial variable that's still needed in the plotting subroutines ...
 edge                       = 7 		#number of grid points to remove from near domain boundaries
 
 radius_max                 = 3                  #grid point radius for maximum value filter (3x3 square neighborhood)
@@ -59,7 +59,7 @@ radius_gauss               = 2                  #grid point radius of convolutio
 
 kernel                     = gauss_kern(radius_gauss)   #convolution operator kernel
 
-neighborhood               = 15                 #15 gridpoint radius for probability matched mean 
+neighborhood               = 15                 #15 gridpoint radius for probability matched mean
 
 plot_alpha          	   = 0.55		#transparency value for filled contour plots
 
@@ -74,7 +74,7 @@ damage_files = '' #['/scratch/skinnerp/2018_newse_post/damage_files/extractDamag
 
 dz_levels_nws       	= np.arange(20.0,80.,5.)		#(dBZ)
 
-uh_2to5_levels 		= [100., 300., 7000.]				#(dBZ) 
+uh_2to5_levels 		= [100., 300., 7000.]				#(dBZ)
 pmm_dz_colors_gray	= [cb_colors.gray5, cb_colors.gray8, 'none']	#gray contours
 
 #################################### Initialize plot attributes using 'web plot' objects:  #####################################################
@@ -93,13 +93,13 @@ dz_plot = web_plot('',                   \
                    cb_colors.nws_dz_cmap,              \
                    'max',                \
                    0.35,               \
-                   neighborhood)  
+                   neighborhood)
 
 ############################ Find WRFOUT files to process: #################################
 
-### Find ENS Summary files ### 
+### Find ENS Summary files ###
 
-ne = 18
+ne = 40
 
 ens_files = []
 summary_files_temp = os.listdir(summary_dir)
@@ -142,7 +142,7 @@ for tt in range(0, t):
 
       xlat = fin.variables["xlat"][edge:-edge,edge:-edge]                     #latitude (dec deg; Lambert conformal)
       xlon = fin.variables["xlon"][edge:-edge,edge:-edge]                     #longitude (dec deg; Lambert conformal)
-      
+
       sw_lat_full = xlat[0,0]
       sw_lon_full = xlon[0,0]
       ne_lat_full = xlat[-1,-1]
@@ -202,7 +202,7 @@ for n in range(0, uh_2to5.shape[0]):
 
 print 'basemap part'
 
-#Load pickled basemap instance for faster plotting: 
+#Load pickled basemap instance for faster plotting:
 
 fig, ax1, ax2, ax3 = create_fig_nomap()
 
@@ -223,15 +223,16 @@ xx, yy = map.makegrid(xlat.shape[1], xlat.shape[0], returnxy=True)[2:4]   #equid
 print 'plot part'
 
 ######################## Reflectivity Plots: #####################
-mems = [1, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-for n in  range(0, uh_2to5_convolve.shape[0]): #[1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9]: 
-   if (mems[n] < 10): 
-      member = '0' + str(mems[n])
-   else: 
-      member = str(mems[n])
+#mems = [1, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+for n in  range(0, uh_2to5_convolve.shape[0]): #[1, 10, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9]:
+   #if (mems[n] < 10):
+   #   member = '0' + str(mems[n])
+   #else:
+   #   member = str(mems[n])
+   member = "%02d"% n
 
    dz_plot.name = 'member_' + member
    dz_plot.var1_title = 'Member %s Composite Reflectivity (dBZ)' % member
    dz_plot.var2_title = 'Member %s 2-5 km Updraft Helicity (m$^{2}$ s$^{-2}$)' % member
-   mem_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, comp_dz[n,:,:], uh_2to5_convolve[n,:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+   mem_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, comp_dz[n,:,:], uh_2to5_convolve[n,:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 

@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
+  echo "$0 YYYYMMDDHH [NN]"
+  exit
+fi
+
 casedate=${1-2019052018}
 numens=${2-40}
 
@@ -25,6 +31,12 @@ ddd=`echo $ymdh |cut -c 7-8`
 hhh=`echo $ymdh |cut -c 9-10`
 
 CASE="C768"
+#SUITES=("cntl")
+SUITES=("cntl" "lsm" "sfc1" "pbl1" "pbl2" "mp1")
+
+hout_min=10                # minutes output
+hout_hour=$(python <<<"print ${hout_min}/60.")
+hout_second=$((${hout_min}*60))
 
 #-----------------------------------------------------------------------
 #
@@ -129,10 +141,13 @@ echo "===================================="
 #
 #-----------------------------------------------------------------------
 
+l=0
 for imn in $(seq 1 1 $numens); do
 
   ensmemid=$(printf "%03d" $imn)
   memdir="$wrkdir/mem_$ensmemid"
+  suite=${SUITES[$l]}
+  l=$(( (l+1)%6 ))
 
   cd $memdir
 
@@ -146,13 +161,13 @@ for imn in $(seq 1 1 $numens); do
   cp $templates/diag_table .
   cp $templates/data_table .
   cp $templates/field_table .
-  cp $templates/input_thompson_mynn.nml input.nml
-  cp $templates/model_configure .
+  cp $templates/input.nml.$suite input.nml
+  cp $templates/model_configure_${ymd} model_configure
   cp $templates/nems.configure .
   cp $templates/CCN_ACTIVATE.BIN .
   cp $templates/global_h2oprdlos.f77 .
   cp $templates/global_o3prdlos.f77 .
-  cp $templates/suite_CAPS_cntl.xml .
+  cp $templates/suite_CAPS_${suite}.xml .
 
   cp -p $FIX_AM/global_solarconstant_noaa_an.txt  solarconstant_noaa_an.txt
   cp -p $FIX_AM/global_o3prdlos.f77               global_o3prdlos.f77
@@ -176,7 +191,7 @@ for imn in $(seq 1 1 $numens); do
   ln -sf $FIXDIR/${CASE}_oro_data.tile7.halo4.nc INPUT/
 
   cd INPUT
-  ln -sf ${CASE}_grid.tile7.halo3.nc     ${CASE}_grid.tile7.nc
+  ln -sf ${CASE}_grid.tile7.halo3.nc     ${JCASE}_grid.tile7.nc
   ln -sf ${CASE}_grid.tile7.halo4.nc     grid.tile7.halo4.nc
   ln -sf ${CASE}_oro_data.tile7.halo4.nc ${CASE}_oro_data.tile7.nc
   ln -sf ${CASE}_oro_data.tile7.halo4.nc oro_data.tile7.halo4.nc
@@ -208,6 +223,9 @@ for imn in $(seq 1 1 $numens); do
 
   sed -i -e "/NTASK/s/NTASK/$nquilt/"  model_configure
   sed -i -e "/NPES/s/NPES/${npes}/;/nhours_fcst/s/ENDHOUR/${ENDHOUR}/"  model_configure
+  sed -i -e "/HOUTMIN/s/HOUTMIN/$hout_min/"  model_configure
+
+  sed -i -e "s/HOUTHRF/$hout_hour/;s/HOUTSEC/$hout_second/"  input.nml
 
   sed -i -e "/LAYOUT/s/LAYOUTX/${layout_x}/;s/LAYOUTY/${layout_y}/" input.nml
   sed -i -e "/LAYOUT/s/LAYOUTIO/${io_layout}/"                      input.nml

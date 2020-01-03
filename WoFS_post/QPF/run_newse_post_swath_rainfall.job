@@ -1,0 +1,69 @@
+#!/bin/csh
+#==================================================================
+#SBATCH -J post_swt_rain
+#SBATCH -o /scratch/brian.matilla/2019_cron_log/post_swt_rain.out
+#SBATCH -e /scratch/brian.matilla/2019_cron_log/post_swt_rain.err
+#SBATCH -A smallqueue
+#SBATCH -p workq
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
+#SBATCH -t 01:00:00
+
+#set echo
+
+set base_dir = /oldscratch/ywang/EPIC/Program/WoFS_post/QPF
+
+# cd to directory where job was submitted from
+cd ${base_dir}
+
+
+#$SLURM_SUBMIT_DIR
+
+setenv MALLOC_MMAP_MAX 0
+setenv MALLOC_TRIM_THRESHOLD 536870912
+
+source /home/louis.wicker/anaconda2/etc/profile.d/conda.csh
+conda activate wof
+set PYTHON = /home/louis.wicker/anaconda2/bin/python
+
+# User defined variables:
+
+set date = 20190520
+
+set fcst_base = /scratch/ywang/EPIC/test_runs
+
+
+########## WPC Cycling Start ################
+set times = (18)
+set nt = (37 )
+
+
+# Run wrapper script for forecast:
+
+#sleep 5
+
+set i = 1
+
+foreach dir ($times)
+   set fcstdir = "$fcst_base/$date$dir/enspost"
+   #set flagfile = $flagdir"/"$dir"_swt_rain.txt"
+
+
+   #echo $flagfile
+   #echo $tempsumdir
+
+   set tempnt = $nt[$i]
+   echo $fcstdir, $tempnt
+
+   if ( -d $fcstdir ) then
+      #if ( ! -e $flagfile ) then
+      #   touch $flagfile
+         $PYTHON wrapper_post_swt_rainfall.py -d $fcstdir -o $fcstdir -e $tempnt
+      #   exit(0)
+      #endif
+   endif
+   @ i++
+end
+
+#sleep 10
+

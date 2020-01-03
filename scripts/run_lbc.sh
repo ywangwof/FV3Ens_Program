@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
+  echo "$0 YYYYMMDDHH [NN]"
+  exit
+fi
+
 casedate=${1-2019052018}
 numens=${2-40}
 
@@ -31,7 +37,7 @@ for imn in $(seq 1 $numens); do
         s|WRK_DIR=.*|WRK_DIR=${memdir}|g
         s|FIXfv3=.*|FIXfv3=$wrkdir/grid_orog|g
 EOF
-  sed -f sed_chgres_lbc ${rootdir}/scripts/driver_chgres_lbc.sh > run_chgres_lbc.sh
+  sed -f sed_chgres_lbc ${rootdir}/scripts/driver_chgres_lbc.ksh > run_chgres_lbc.sh
 
   chmod 755 run_chgres_lbc.sh
   ./run_chgres_lbc.sh

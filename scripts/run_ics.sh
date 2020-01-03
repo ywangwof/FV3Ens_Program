@@ -1,4 +1,10 @@
 #!/bin/bash
+
+if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
+  echo "$0 YYYYMMDDHH [NN]"
+  exit
+fi
+
 casedate=${1-2019052018}
 numens=${2-40}
 
@@ -13,7 +19,7 @@ gdasdir="/scratch/ywang/EPIC/GDAS"
 # Link grid and orog files
 #
 if [[ ! -e $wrkdir/grid_orog ]]; then
-  griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl"
+  griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl_${casedate}"
 
   mkdir -p $wrkdir/grid_orog
 

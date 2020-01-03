@@ -1,6 +1,6 @@
 ###################################################################################################
 
-from mpl_toolkits.basemap import Basemap
+#from mpl_toolkits.basemap import Basemap
 import matplotlib
 import math
 from scipy import *
@@ -10,12 +10,13 @@ import sys, glob
 import os
 import time
 from optparse import OptionParser
-import netCDF4
+#import netCDF4
 from news_e_post_cbook import *
 
 from multiprocessing import Pool
 
-sys.path.append("/scratch/software/Anaconda2/bin")
+#sys.path.append("/scratch/software/Anaconda2/bin")
+sys.path.append("/home/louis.wicker/anaconda2/bin")
 
 ###################################################################################################
 # run_script is a function that runs a system command
@@ -71,15 +72,15 @@ while (ens_t < fcst_nt):
          cmd = "python news_e_member.py -d %s -o %s -m %s -t %d " % (summary_dir, outdir, mapname,  ens_t)
          pool.apply_async(run_script, (cmd,))
 
-#         if (ens_t >= 3): 
+#         if (ens_t >= 3):
 #            cmd = "python news_e_paintball.py -d %s -o %s -t %d -n %d " % (summary_dir, outdir, (ens_t-3), fcst_nt)
 #            pool.apply_async(run_script, (cmd,))
- 
+
 #            cmd = "python news_e_paint_timelag.py -d %s -a %s -o %s -t %d -n %d " % (summary_dir, summary_dir[:-5], outdir, (ens_t-3), fcst_nt)
 #            pool.apply_async(run_script, (cmd,))
 
          ens_t = ens_t + 1
-#      else: 
+#      else:
 #         time.sleep(2)
 
 #time.sleep(30)

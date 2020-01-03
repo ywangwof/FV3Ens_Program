@@ -1,0 +1,102 @@
+#!/bin/csh
+#==================================================================
+#SBATCH -J basemap
+#SBATCH -o /scratch/brian.matilla/2019_cron_log/basemap.out
+#SBATCH -e /scratch/brian.matilla/2019_cron_log/basemap.err
+#SBATCH -A smallqueue
+#SBATCH -p workq
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
+#SBATCH -t 00:45:00
+
+set echo
+
+# cd to directory where job was submitted from
+#cd /oldscratch/skinnerp/2019_wofs_post/python_realtime
+#cd /work/brian.matilla/python_realtime
+cd /work/brian.matilla/python_realtime
+
+
+#$SLURM_SUBMIT_DIR
+
+setenv MALLOC_MMAP_MAX 0
+setenv MALLOC_TRIM_THRESHOLD 536870912
+
+# User defined variables: 
+
+set date = (20191028)
+set base_dir = /scratch/brian.matilla/
+set fcst_base = /scratch/wof/realtime/FCST/
+set flagdir = $base_dir"flags/"
+
+set post_dir = '/scratch/skinnerp/2019_wofs_post/summary_files/'$date'/'
+if ( ! -d $post_dir ) then
+   echo "Forecast directories not created yet. Exiting"
+   exit(0)
+endif
+
+set times = (1600 1900 2200)
+
+foreach tiempo ($times)
+   set post_timedir = $post_dir$tiempo'/'
+   set tempfiles = `ls -a ${post_timedir} | wc | awk '{print $1}'`
+   if ( "${tempfiles}" > 2) then
+      echo "Found ${tempfiles} files in $post_timedir."
+      echo "Setting $tiempo as the basemap time for the day."
+      set fcstdir = $fcst_base$date"/"$tiempo"/"
+      set mapdir = $base_dir"basemap/"
+      set flagfile = $flagdir$date"/"$tiempo"_map.txt"
+      echo $fcstdir
+      echo $mapdir
+      echo $flagfile
+      break
+   endif
+   @ i++
+end
+
+foreach dates ($date)
+   if ( -d $fcstdir ) then
+      if (! -e $flagfile) then
+         touch $flagfile
+         python basemap_summary_file.py -d $fcstdir -o $mapdir
+         exit(0)
+      endif
+   endif
+   @ i++
+end
+
+sleep 5
+
+exit(0)
+# Build directories needed: 
+
+#foreach date ($dates)
+#   set fcst = $fcst_base$date"/"
+#   set mapdir = $base_dir"basemap/"
+#   set flagdir = $base_dir"flags/"$date"/"
+#
+## Run wrapper script for forecast: 
+#
+#sleep 1
+#
+#set i = 1
+#
+#foreach dates ($date)
+#   set fcstdir = $fcst$dir"/"
+#   set flagfile = $flagdir"/"$dir"_map.txt"
+#
+#   echo $fcstdir
+#   echo $flagfile
+#
+#   if ( -d $fcstdir ) then
+#      if ( ! -e $flagfile ) then
+#         touch $flagfile 
+#         python basemap_summary_file.py -d $fcstdir -o $mapdir
+#         exit(0)
+#      endif
+#   endif 
+#   @ i++
+#end
+#
+#sleep 10
+

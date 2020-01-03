@@ -20,12 +20,22 @@ cd ${base_dir}
 
 setenv MALLOC_MMAP_MAX 0
 setenv MALLOC_TRIM_THRESHOLD 536870912
-set PYTHON = /scratch/software/Odin/python/anaconda2/bin/python
-setenv PATH /scratch/software/Odin/python/anaconda2/bin:$PATH
+#set PYTHON = /scratch/software/Odin/python/anaconda2/bin/python
+#setenv PATH /scratch/software/Odin/python/anaconda2/bin:$PATH
+set PYTHON = /home/louis.wicker/anaconda2/envs/wof/bin/python
+setenv PATH /home/louis.wicker/anaconda2/envs/wof/bin:$PATH
 
 # User defined variables:
 
-set date = 20190520
+if ($#argv < 1) then
+  echo "usage $0 YYYYMMDDHH"
+  exit
+endif
+
+set datestr = $1
+set fcstdate = `echo $datestr | awk '{print substr($0,1,8)}'`
+set fcsthour = `echo $datestr | awk '{print substr($0,9,2)}'`
+#set date = 20190520
 
 set fcst_base = /scratch/ywang/EPIC/test_runs
 
@@ -41,7 +51,7 @@ set fcst_base = /scratch/ywang/EPIC/test_runs
 #set times = (1900 2000 2100 2200 2300 0000)
 #set nt = (72 60 48 36 24 12)
 
-set times = (18)
+set times = ($fcsthour)
 set nt = (37)
 
 # Build directories needed:
@@ -53,9 +63,9 @@ sleep 1
 set i = 1
 
 foreach dir ($times)
-   set fcstdir = "${fcst_base}/$date$dir"
+   set fcstdir = "${fcst_base}/$fcstdate$dir"
    #set flagfile = $flagdir"/"$dir"_ens.txt"
-   set tempsumdir = "${fcst_base}/$date$dir"
+   set tempsumdir = "${fcst_base}/$fcstdate$dir"
 
 
    set tempnt = $nt[$i]

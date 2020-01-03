@@ -23,17 +23,25 @@ setenv MALLOC_TRIM_THRESHOLD 536870912
 
 source /home/louis.wicker/anaconda2/etc/profile.d/conda.csh
 conda activate wof
-set PYTHON = /home/louis.wicker/anaconda2/bin/python
+set PYTHON = /home/louis.wicker/anaconda2/envs/wof/bin/python
 
 #set PYTHON = /scratch/software/Odin/python/anaconda2/bin/python
 #setenv PATH /scratch/software/Odin/python/anaconda2/bin:$PATH
 
 # User defined variables:
+if ($#argv < 1) then
+  echo "usage $0 YYYYMMDDHH"
+  exit
+endif
 
-set date = 20190520
+set datestr = $1
+set fcstdate = `echo $datestr | awk '{print substr($0,1,8)}'`
+set fcsthour = `echo $datestr | awk '{print substr($0,9,2)}'`
+
+#set date = 20190520
 set fcst_base = /scratch/ywang/EPIC/test_runs
 
-set times = (18)
+set times = ($fcsthour)
 set nt = (37)
 
 # Build directories needed:
@@ -45,14 +53,14 @@ sleep 1
 set i = 1
 
 foreach dir ($times)
-   set fcstdir = "$fcst_base/$date$dir"
+   set fcstdir = "$fcst_base/$fcstdate$dir"
 
    set imagedir = "$fcstdir/images/"
    if (! -d $imagedir) then
      mkdir $imagedir
    endif
 
-   set mapfile = "$fcstdir/basemap/fv3sar_MAP_${date}_${dir}00.pickle"
+   set mapfile = "$fcstdir/basemap/fv3sar_MAP_${fcstdate}_${dir}00.pickle"
 
    set sumdir = "$fcstdir/enspost"
 

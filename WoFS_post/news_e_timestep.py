@@ -69,7 +69,7 @@ damage_files = '' #['/scratch/skinnerp/2018_newse_post/damage_files/extractDamag
 
 #################################### User-Defined Variables:  #####################################################
 
-domain          = 'full'        #vestigial variable that's still needed in the plotting subroutines ... 
+domain          = 'full'        #vestigial variable that's still needed in the plotting subroutines ...
 edge            = 7             #number of grid points to remove from near domain boundaries
 thin            = 13             #thinning factor for quiver values (e.g. 6 means slice every 6th grid point)
 
@@ -88,10 +88,10 @@ temp_levels_850         = np.arange(25., 85., 5.)
 temp_levels_700         = np.arange(10., 70., 5.)
 the_levels              = np.arange(273., 360., 3.)
 td_levels		= np.arange(-16., 88., 4.)		#(deg F)
-td_levels_2             = np.arange(12., 80., 4.)             #(deg F) 
+td_levels_2             = np.arange(12., 80., 4.)             #(deg F)
 td_levels_3             = np.arange(12., 60., 4.)             #(deg F)
-td_levels_ugly          = np.arange(32., 80., 4.)             #(deg F) 
-#td_levels_ugly          = np.arange(40., 80., 4.)             #(deg F) 
+td_levels_ugly          = np.arange(32., 80., 4.)             #(deg F)
+#td_levels_ugly          = np.arange(40., 80., 4.)             #(deg F)
 ws_levels_low       	= np.arange(10.,70.,6.)			#(m s^-1)
 ws_levels_high       	= np.arange(30.,90.,6.)			#(m s^-1)
 ws_levels_low_ms      	= np.arange(5.,35.,3.)			#(m s^-1)
@@ -114,7 +114,7 @@ mslp_levels             = np.arange(970.,1027.,3)
 omega_levels            = np.arange(-9.,11.,2.)
 ws_levels_500           = np.arange(10., 90., 8.)
 
-pmm_dz_levels 		= [35., 50.]				#(dBZ) 
+pmm_dz_levels 		= [35., 50.]				#(dBZ)
 pmm_dz_colors_gray	= [cb_colors.gray8, cb_colors.gray8]	#gray contours
 
 pmm_cp_levels           = [40., 1050.]
@@ -142,7 +142,7 @@ ws_plot = web_plot('',                   \
                    cb_colors.wind_cmap,              \
                    'max',                \
                    plot_alpha,               \
-                   neighborhood)  
+                   neighborhood)
 
 cape_plot = web_plot('mlcape',                 \
                    'Ens. Mean 100 hPa MLCAPE (J Kg$^{-1}$)',			\
@@ -158,7 +158,7 @@ cape_plot = web_plot('mlcape',                 \
                    cb_colors.cape_cmap,              \
                    'max',                \
                    plot_alpha,               \
-                   neighborhood)  
+                   neighborhood)
 
 cin_plot = web_plot('mlcin',                  \
                    'Ens. Mean 100 hPa MLCIN (J Kg$^{-1}$)',			\
@@ -174,7 +174,7 @@ cin_plot = web_plot('mlcin',                  \
                    cb_colors.cin_cmap,             \
                    'both',               \
                    plot_alpha,               \
-                   neighborhood)  
+                   neighborhood)
 
 pbl_plot = web_plot('pblh',                 \
                    'Ens. Mean PBL Height (m)',                    \
@@ -206,7 +206,7 @@ stp_plot = web_plot('stp',                  \
                    cb_colors.cape_cmap,              \
                    'max',                \
                    plot_alpha,               \
-                   neighborhood)  
+                   neighborhood)
 
 swdown_plot = web_plot('swdown',                  \
                    'Ens. Mean Downward Short Wave Radiation Flux',                   \
@@ -238,7 +238,7 @@ srh_plot = web_plot('',                  \
                    cb_colors.cape_cmap,              \
                    'max',                \
                    plot_alpha,               \
-                   neighborhood)  
+                   neighborhood)
 
 temp_plot = web_plot('temp',                 \
                    'Ens. Mean 2 m Temperature ($^{\circ}$F)',			\
@@ -254,7 +254,7 @@ temp_plot = web_plot('temp',                 \
                    cb_colors.temp_cmap_ugly,              \
                    'both',               \
                    plot_alpha,               \
-                   neighborhood)  
+                   neighborhood)
 
 temp850_plot = web_plot('temp_850',                 \
                    'Ens. Mean 850 hPa Temperature ($^{\circ}$F)',                       \
@@ -302,7 +302,7 @@ td_plot = web_plot('td',                   \
                    cb_colors.td_cmap_ugly,              \
                    'both',               \
                    plot_alpha,               \
-                   neighborhood)  
+                   neighborhood)
 
 td850_plot = web_plot('td_850',                   \
                    'Ens. Mean 850 hPa Dewpoint Temp ($^{\circ}$F)',                     \
@@ -587,8 +587,8 @@ v_dvg = fin.variables["v_dvg"][:,edge:-edge,edge:-edge]
 u_850_300p = fin.variables["u_850_300p"][:,edge:-edge,edge:-edge]
 v_850_300p = fin.variables["v_850_300p"][:,edge:-edge,edge:-edge]
 cape = fin.variables["cape_ml"][:,edge:-edge,edge:-edge]
-mucape = fin.variables["cape_mu"][:,edge:-edge,edge:-edge]
-sbcape = fin.variables["cape_sfc"][:,edge:-edge,edge:-edge]
+#mucape = fin.variables["cape_mu"][:,edge:-edge,edge:-edge]
+#sbcape = fin.variables["cape_sfc"][:,edge:-edge,edge:-edge]
 #cape_0to3 = fin.variables["cape_0to3_ml"][:,edge:-edge,edge:-edge]
 #pbl_hgt = fin.variables["pbl_hgt"][:,edge:-edge,edge:-edge]   #not in WRFWOF yet
 pbl_mfc = fin.variables["pbl_mfc"][:,edge:-edge,edge:-edge]
@@ -614,7 +614,7 @@ iwp = fin.variables["iwp"][:,edge:-edge,edge:-edge]
 lwp = fin.variables["lwp"][:,edge:-edge,edge:-edge]
 w_700p = fin.variables["w_700p"][:,edge:-edge,edge:-edge]
 
-### mask areas with no CAPE in cin plot ###: 
+### mask areas with no CAPE in cin plot ###:
 masked_cin = np.ma.masked_where((cape <= 0.), (cin))
 
 mean_mslp = np.mean(mslp, axis=0)
@@ -642,8 +642,8 @@ mean_v_bl = np.mean(v_bl, axis=0)
 mean_u_dvg = np.mean(u_dvg, axis=0)
 mean_v_dvg = np.mean(v_dvg, axis=0)
 mean_cape = np.mean(cape, axis=0)
-mean_mucape = np.mean(mucape, axis=0)
-mean_sbcape = np.mean(sbcape, axis=0)
+#mean_mucape = np.mean(mucape, axis=0)
+#mean_sbcape = np.mean(sbcape, axis=0)
 #mean_cape_0to3 = np.mean(cape_0to3, axis=0)
 #mean_pblh = np.mean(pbl_hgt, axis=0)   #not in WRFWOF yet
 mean_pbl_mfc = np.mean(pbl_mfc, axis=0)
@@ -721,7 +721,7 @@ quiv_corf_ds_v = mean_corf_ds_v[0:-1:thin,0:-1:thin]
 
 print 'basemap part'
 
-#Load pickled basemap instance for faster plotting: 
+#Load pickled basemap instance for faster plotting:
 
 fig, ax1, ax2, ax3 = create_fig_nomap()
 
@@ -782,9 +782,9 @@ corf_ds_q_v = quiv_corf_ds_v
 
 ######################## Environment Plots: #####################
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, temp_plot, mean_tf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, temp_plot, mean_tf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, td_plot, mean_tdf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, td_plot, mean_tdf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
 
 env_plot(map, fig, ax1, ax2, ax3, x, y, mslp_plot, mean_mslp[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
 
@@ -796,40 +796,40 @@ env_plot(map, fig, ax1, ax2, ax3, x, y, temp700_plot, mean_tf_700[:,:], pmm_dz[:
 
 env_plot(map, fig, ax1, ax2, ax3, x, y, td700_plot, mean_tdf_700[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_700p, q_v_700p, 500, 5, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, the_plot, mean_the_ml[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, the_plot, mean_the_ml[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
-cape_plot.name = 'mucape'
-cape_plot.var1_title = 'Ens. Mean MUCAPE (J Kg$^{-1}$)' 
-env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_mucape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+#cape_plot.name = 'mucape'
+#cape_plot.var1_title = 'Ens. Mean MUCAPE (J Kg$^{-1}$)'
+#env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_mucape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
-cape_plot.name = 'sbcape'
-cape_plot.var1_title = 'Ens. Mean SBCAPE (J Kg$^{-1}$)' 
-env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_sbcape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+#cape_plot.name = 'sbcape'
+#cape_plot.var1_title = 'Ens. Mean SBCAPE (J Kg$^{-1}$)'
+#env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_sbcape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
 #env_plot(map, fig, ax1, ax2, ax3, x, y, pbl_plot, mean_pblh[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')  #no WRFWOF yet
 
 #cape_plot.name = 'mlcape_0to3'
-#cape_plot.var1_title = 'Ens. Mean 100 hPa MLCAPE below 3 km (J Kg$^{-1}$)' 
+#cape_plot.var1_title = 'Ens. Mean 100 hPa MLCAPE below 3 km (J Kg$^{-1}$)'
 #cape_plot.var1_levels = cape_0to3_levels
-#env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape_0to3[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+#env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape_0to3[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, cin_plot, mean_cin[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, cin_plot, mean_cin[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, stp_plot, mean_stp[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, stp_plot, mean_stp[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, swdown_plot, mean_swdown[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, swdown_plot, mean_swdown[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, mean_comp_dz[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, mean_comp_dz[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
 srh_plot.name = 'srh0to1'
 srh_plot.var1_title = 'Ens. Mean 0 - 1 km Storm Relative Helicity (m$^{2}$ s$^{-2}$)'
-env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
 srh_plot.name = 'srh0to3'
 srh_plot.var1_title = 'Ens. Mean 0 - 3 km Storm Relative Helicity (m$^{2}$ s$^{-2}$)'
-env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to3[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False') 
+env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to3[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
 mfc_plot.name = 'pbl_mfc'
 mfc_plot.var1_title = 'Ens. Mean Lowest 75 hPa Max Moisture Convergence (g Kg$^{-1}$ s$^{-1}$)'
@@ -837,8 +837,8 @@ env_plot(map, fig, ax1, ax2, ax3, x, y, mfc_plot, mean_pbl_mfc[:,:], pmm_dz[:,:]
 
 ws_plot.name = 'ws_500'
 ws_plot.var1_title = 'Ens. Mean 500 m Wind Speed (kts)'
-ws_plot.var1_levels = ws_levels_low 
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_500[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_500, q_v_500, 1000, 5, 0, spec='False', quiv='True') 
+ws_plot.var1_levels = ws_levels_low
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_500[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_500, q_v_500, 1000, 5, 0, spec='False', quiv='True')
 
 ws_plot.name = 'ws_850hpa'
 ws_plot.var1_title = 'Ens. Mean 850 hPa Wind Speed (kts)'
@@ -862,17 +862,17 @@ env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_850_300p[:,:], pmm_dz[:
 
 ws_plot.name = 'shear0to6'
 ws_plot.var1_title = 'Ens. Mean 0 - 6 km Shear (kts)'
-ws_plot.var1_levels = ws_levels_high 
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to6[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to6_q_u, shear0to6_q_v, 1000, 5, 0, spec='False', quiv='True') 
+ws_plot.var1_levels = ws_levels_high
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to6[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to6_q_u, shear0to6_q_v, 1000, 5, 0, spec='False', quiv='True')
 
 ws_plot.name = 'shear0to1'
 ws_plot.var1_title = 'Ens. Mean 0 - 1 km Shear (kts)'
-ws_plot.var1_levels = ws_levels_low 
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to1_q_u, shear0to1_q_v, 1000, 5, 0, spec='False', quiv='True') 
+ws_plot.var1_levels = ws_levels_low
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to1_q_u, shear0to1_q_v, 1000, 5, 0, spec='False', quiv='True')
 
 ws_plot.name = 'bunk'
 ws_plot.var1_title = 'Ens. Mean Bunkers Storm Motion (kts)'
-ws_plot.var1_levels = ws_levels_low 
+ws_plot.var1_levels = ws_levels_low
 env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_bunk[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, bunk_q_u, bunk_q_v, 1000, 5, 0, spec='False', quiv='True')
 
 ws_plot.name = 'corf_us'
@@ -906,4 +906,4 @@ omega_plot.name = 'omega'
 omega_plot.var1_title = 'Ens. Mean 700 hPa Omega (Pa s$^{-1}$)'
 omega_plot.var1_levels = omega_levels
 env_plot(map, fig, ax1, ax2, ax3, x, y, omega_plot, mean_omega[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
- 
+

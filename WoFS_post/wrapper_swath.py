@@ -15,7 +15,8 @@ from news_e_post_cbook import *
 
 from multiprocessing import Pool
 
-sys.path.append("/scratch/software/Anaconda2/bin")
+#sys.path.append("/scratch/software/Anaconda2/bin")
+sys.path.append("/home/louis.wicker/anaconda2/bin")
 
 ###################################################################################################
 # run_script is a function that runs a system command

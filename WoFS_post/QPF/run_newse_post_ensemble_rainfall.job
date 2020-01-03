@@ -1,0 +1,75 @@
+#!/bin/csh
+#==================================================================
+#SBATCH -J post_ens_rain
+#SBATCH -o /scratch/brian.matilla/2019_wofs_post/post_ens_rain.out
+#SBATCH -e /scratch/brian.matilla/2019_wofs_post/post_ens_rain.err
+#SBATCH -A smallqueue
+#SBATCH -p workq
+#SBATCH --ntasks-per-node=1
+#SBATCH --cpus-per-task=24
+#SBATCH -t 01:00:00
+
+set echo
+
+# cd to directory where job was submitted from
+#cd /scratch/skinnerp/2018_newse_post/python_retro
+#cd /work/brian.matilla/python_2019_hwtmods
+cd /work/brian.matilla/python_realtime
+
+#$SLURM_SUBMIT_DIR
+
+setenv MALLOC_MMAP_MAX 0
+setenv MALLOC_TRIM_THRESHOLD 536870912
+
+# User defined variables: 
+
+set date = 20190531
+#set base_dir = /scratch/brian.matilla/2019HWT_PP_mods/
+set base_dir = /scratch/skinnerp/2019_wofs_post/
+set fcst_base = /scratch/wof/realtime/FCST/
+#set base_dir = /scratch/skinnerp/2018_newse_post/
+#set fcst_base =  /scratch/wof/realtime/FCST/
+#set fcst_base =  /work/JTTI/HMT_FFaIR/FCST/
+set my_dir = /scratch/brian.matilla/
+
+#set times = (1900)
+set times = (1900 1930 2000 2030 2100 2130 2200 2230 2300 2330 0000 0030 0100 0130 0200 0230 0300)
+#set times = (1800 1830 1900 2000 2100 2200 2300 0000 0100 0200 0300 0400)
+#set nt = (72)
+set nt = (72 36 72 36 72 36 72 36 72 36 72 36 72 36 72 36 72)
+
+# Build directories needed: 
+
+set fcst = $fcst_base$date"/"
+set summary = $base_dir"summary_files/"$date"/"
+set flagdir = $my_dir"flags/"$date"/"
+
+# Run wrapper script for forecast: 
+
+sleep 1
+
+set i = 1
+
+foreach dir ($times)
+   set fcstdir = $fcst$dir"/"
+   set flagfile = $flagdir"/"$dir"_ens_rain.txt"
+   set tempsumdir = $summary$dir"/"
+
+   echo $fcstdir
+   echo $flagfile
+   echo $tempsumdir
+
+   set tempnt = $nt[$i]
+   echo $tempnt
+
+   if ( -d $fcstdir ) then
+      if ( ! -e $flagfile ) then
+         touch $flagfile 
+         python wrapper_post_ens_rainfall.py -d $fcstdir -o $tempsumdir -e $tempnt 
+      endif
+   endif 
+   @ i++
+end
+
+sleep 10
+

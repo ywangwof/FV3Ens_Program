@@ -36,22 +36,22 @@ write_nemsioflip:        .false.
 write_fsyncflag:         .false.
 
 output_grid:             'lambert_conformal'
-cen_lon:                 -98.0
-cen_lat:                  34.5
+cen_lon:                 -100.565
+cen_lat:                  34.3686
 stdlat1:                  30.0
 stdlat2:                  60.0
 nx:                       650
 ny:                       550
-lon1:                    -107.63
-lat1:                     26.53
+lon1:                    -110.18
+lat1:                     26.40
 dx:                       3000.
 dy:                       3000.
 
 nfhout:                  0
-nmhout:                  10
+nmhout:                  HOUTMIN
 nshout:                  0
 nfhmax_hf:               60
 nfhout_hf:               0
-nfmout_hf:               10
+nfmout_hf:               HOUTMIN
 nfsout_hf:               0
 nsout:                   -1

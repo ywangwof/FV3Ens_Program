@@ -1,0 +1,57 @@
+!    -*- f90 -*-
+! Note: the context of this file is case sensitive.
+
+python module cape ! in 
+    interface  ! in :cape
+        subroutine dcapecalc3d(prs,tmk,qvp,ght,ter,sfp,i3dflag,ter_follow,psafile,cape,cin,lcl,lfc,miy,mjx,mkzh) ! in :cape:mod_rip_cape.f
+            double precision dimension(mkzh,miy,mjx),intent(in) :: prs
+            double precision dimension(mkzh,miy,mjx),depend(mkzh,miy,mjx),intent(in) :: tmk
+            double precision dimension(mkzh,miy,mjx),depend(mkzh,miy,mjx),intent(in) :: qvp
+            double precision dimension(mkzh,miy,mjx),depend(mkzh,miy,mjx),intent(in) :: ght
+            double precision dimension(miy,mjx),depend(miy,mjx),intent(in) :: ter
+            double precision dimension(miy,mjx),depend(miy,mjx),intent(in) :: sfp
+            integer,intent(in) :: i3dflag
+            integer,intent(in) :: ter_follow
+            character*(*),intent(in) :: psafile
+            double precision dimension(miy,mjx),depend(miy,mjx),intent(out) :: cape
+            double precision dimension(miy,mjx),depend(miy,mjx),intent(out) :: cin
+            double precision dimension(miy,mjx),depend(miy,mjx),intent(out) :: lcl
+            double precision dimension(miy,mjx),depend(miy,mjx),intent(out) :: lfc
+            integer, optional,check(shape(prs,1)==miy),depend(prs) :: miy=shape(prs,1)
+            integer, optional,check(shape(prs,2)==mjx),depend(prs) :: mjx=shape(prs,2)
+            integer, optional,check(shape(prs,0)==mkzh),depend(prs) :: mkzh=shape(prs,0)
+        end subroutine dcapecalc3d
+        function tonpsadiabat(thte,prs,psadithte,psadiprs,psaditmk,gamma) ! in :cape:mod_rip_cape.f
+            double precision :: thte
+            double precision :: prs
+            double precision dimension(150) :: psadithte
+            double precision dimension(150) :: psadiprs
+            double precision dimension(150,150) :: psaditmk
+            double precision :: gamma
+            double precision :: tonpsadiabat
+        end function tonpsadiabat
+        subroutine dlookup_table(psadithte,psadiprs,psaditmk,fname) ! in :cape:mod_rip_cape.f
+            double precision dimension(150) :: psadithte
+            double precision dimension(150) :: psadiprs
+            double precision dimension(150,150) :: psaditmk
+            character*(*) :: fname
+        end subroutine dlookup_table
+        subroutine dpfcalc(prs,sfp,pf,miy,mjx,mkzh,ter_follow) ! in :cape:mod_rip_cape.f
+            double precision dimension(mkzh,miy,mjx) :: prs
+            double precision dimension(miy,mjx),depend(miy,mjx) :: sfp
+            double precision dimension(mkzh,miy,mjx),depend(mkzh,miy,mjx) :: pf
+            integer, optional,check(shape(prs,1)==miy),depend(prs) :: miy=shape(prs,1)
+            integer, optional,check(shape(prs,2)==mjx),depend(prs) :: mjx=shape(prs,2)
+            integer, optional,check(shape(prs,0)==mkzh),depend(prs) :: mkzh=shape(prs,0)
+            integer :: ter_follow
+        end subroutine dpfcalc
+        function virtual(temp,ratmix) ! in :cape:mod_rip_cape.f
+            double precision :: temp
+            double precision :: ratmix
+            double precision :: virtual
+        end function virtual
+    end interface 
+end python module cape
+
+! This file was auto-generated with f2py (version:2).
+! See http://cens.ioc.ee/projects/f2py2e/

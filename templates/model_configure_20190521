@@ -25,7 +25,7 @@ restart_interval:        0
 
 output_1st_tstep_rst:   .true.
 
-quilting:               .true.
+quilting:               .QUILT.
 
 write_groups:            1
 write_tasks_per_group:   NTASK
@@ -36,14 +36,14 @@ write_nemsioflip:        .false.
 write_fsyncflag:         .false.
 
 output_grid:             'lambert_conformal'
-cen_lon:                 -96.3574
-cen_lat:                  36.1125
+cen_lon:                 -92.816100
+cen_lat:                  37.208500
 stdlat1:                  30.0
 stdlat2:                  60.0
 nx:                       650
 ny:                       550
-lon1:                    -106.20
-lat1:                     28.084
+lon1:                    -102.808505
+lat1:                     29.141322
 dx:                       3000.
 dy:                       3000.
 

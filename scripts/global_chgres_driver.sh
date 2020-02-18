@@ -23,7 +23,7 @@ export CASE=${CASE:-C96}                     # resolution of tile: 48, 96, 192, 
 export CRES=`echo $CASE | cut -c 2-`
 export CDATE=${CDATE:-${cdate:-2018100600}}  # format yyyymmddhh yyyymmddhh ...
 export CDUMP=${CDUMP:-gfs}                   # gfs or gdas
-export LEVS=${LEVS:-65}
+export LEVS=${LEVS:-64}
 export LSOIL=${LSOIL:-4}
 export REGIONAL=${REGIONAL:-0}               # default is to assume uniform grid, which is REGIONAL=0
                                              # REGIONAL=1 - generate data and boundary (for regional case)

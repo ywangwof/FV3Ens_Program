@@ -7,15 +7,19 @@ fi
 
 casedate=${1-2019052018}
 numens=${2-40}
+wrkcase=${3-"test_runs"}
+
+wrkroot="/scratch/ywang/EPIC"
 
 caseHH=${casedate:8:2}
+eventymd=$(date -d "${casedate:0:8} ${caseHH}:00 1 hours ago" +%Y%m%d)
 
 rootdir="/oldscratch/ywang/EPIC/Program"
-wrkdir="/scratch/ywang/EPIC/test_runs/${casedate}"
-EXEPRO="${rootdir}/exec/fv3_32bit_cntl.exe"
+wrkdir="${wrkroot}/${wrkcase}/${casedate}"
 
 griddir="$wrkdir/grid_orog"
 ENDHOUR="6"
+quilting=".true."
 
 templates=${rootdir}/templates
 FIX_AM=${rootdir}/fix_am
@@ -31,8 +35,16 @@ ddd=`echo $ymdh |cut -c 7-8`
 hhh=`echo $ymdh |cut -c 9-10`
 
 CASE="C768"
-#SUITES=("cntl")
-SUITES=("cntl" "lsm" "sfc1" "pbl1" "pbl2" "mp1")
+if [[ "$wrkcase" =~ "test_runs" ]]; then
+  suitelen=1
+elif [[ "$wrkcase" =~ "test_mp" ]]; then
+  suitelen=6           # number of suites to be used
+else
+  echo "Unknown wrkcase = \"$wrkcase\"."
+  exit 1
+fi
+
+SUITES=("cntl" "lsm1" "sfcl1" "pbl1" "pbl2" "mp1")
 
 hout_min=10                # minutes output
 hout_hour=$(python <<<"print ${hout_min}/60.")
@@ -69,7 +81,11 @@ layout_y="10"
 nquilt="28"
 io_layout="1,1"
 
-npes=$((${layout_x} * ${layout_y}+${nquilt}))
+if [[ "quilting" =~ ".true." ]]; then
+  npes=$((layout_x * layout_y+nquilt))
+else
+  npes=$((layout_x * layout_y))
+fi
 
 nodes=$((npes/24))
 m=$((npes%24))
@@ -147,7 +163,9 @@ for imn in $(seq 1 1 $numens); do
   ensmemid=$(printf "%03d" $imn)
   memdir="$wrkdir/mem_$ensmemid"
   suite=${SUITES[$l]}
-  l=$(( (l+1)%6 ))
+  l=$(( (l+1)%suitelen ))
+
+  EXEPRO="${rootdir}/exec/fv3_32bit_${suite}.exe"
 
   cd $memdir
 
@@ -160,9 +178,13 @@ for imn in $(seq 1 1 $numens); do
 
   cp $templates/diag_table .
   cp $templates/data_table .
-  cp $templates/field_table .
+  if [[ "$suite" == "mp1" ]]; then
+    cp $templates/field_table.${suite} field_table
+  else
+    cp $templates/field_table .
+  fi
   cp $templates/input.nml.$suite input.nml
-  cp $templates/model_configure_${ymd} model_configure
+  cp $templates/model_configure_${eventymd} model_configure
   cp $templates/nems.configure .
   cp $templates/CCN_ACTIVATE.BIN .
   cp $templates/global_h2oprdlos.f77 .
@@ -221,7 +243,7 @@ for imn in $(seq 1 1 $numens); do
   sed -i -e "/DD/s/DD/$ddd/"     model_configure
   sed -i -e "/HH/s/HH/$hhh/"     model_configure
 
-  sed -i -e "/NTASK/s/NTASK/$nquilt/"  model_configure
+  sed -i -e "/NTASK/s/NTASK/$nquilt/;/quilting/s/.QUILT./$quilting/"  model_configure
   sed -i -e "/NPES/s/NPES/${npes}/;/nhours_fcst/s/ENDHOUR/${ENDHOUR}/"  model_configure
   sed -i -e "/HOUTMIN/s/HOUTMIN/$hout_min/"  model_configure
 

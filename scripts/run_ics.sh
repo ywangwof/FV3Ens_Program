@@ -7,19 +7,23 @@ fi
 
 casedate=${1-2019052018}
 numens=${2-40}
+wrkcase=${3-"test_runs"}
+
+wrkroot="/scratch/ywang/EPIC"
 
 caseHH=${casedate:8:2}
+caseDT=$(date -d "${casedate:0:8} ${caseHH}:00 1 hours ago" +%Y%m%d)
 
 rootdir="/oldscratch/ywang/EPIC/Program"
 
-wrkdir="/scratch/ywang/EPIC/test_runs/${casedate}"
+wrkdir="${wrkroot}/${wrkcase}/${casedate}"
 gdasdir="/scratch/ywang/EPIC/GDAS"
 
 #
 # Link grid and orog files
 #
 if [[ ! -e $wrkdir/grid_orog ]]; then
-  griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl_${casedate}"
+  griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl_${caseDT}"
 
   mkdir -p $wrkdir/grid_orog
 

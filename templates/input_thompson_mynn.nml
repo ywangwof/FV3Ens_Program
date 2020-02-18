@@ -125,7 +125,7 @@
 /
 
  &gfs_physics_nml
-       fhzero         = 0.1666666666666666667
+       fhzero         = 1.0
        ldiag3d        = .false.
        fhcyc          = 24.
        nst_anl        = .true.

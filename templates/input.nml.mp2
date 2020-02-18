@@ -45,7 +45,7 @@
        npx      = NPX
        npy      = NPY
        ntiles   = 1,
-       npz    = 64
+       npz    = 63
        !grid_type = -1
        make_nh = .T.
        fv_debug = .F.
@@ -118,14 +118,14 @@
 
  &external_ic_nml
        filtered_terrain = .true.
-       levp = 65
+       levp = 64
        gfs_dwinds = .true.
        checker_tr = .F.
        nt_checker = 0
 /
 
  &gfs_physics_nml
-       fhzero         = HOUTHRF
+       fhzero         = 1.0
        ldiag3d        = .false.
        fhcyc          = 24.
        nst_anl        = .true.

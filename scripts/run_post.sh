@@ -62,6 +62,10 @@ CHH=${casedate:8:2}
 
 for mn in $(seq 0 $nummns $fcstmn); do
 
+  if [[ $mn -eq 0 ]]; then
+    let mn++
+  fi
+
   fcsthr=$((mn/60))
   fcstmn=$((mn%60))
 

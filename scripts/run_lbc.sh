@@ -7,12 +7,15 @@ fi
 
 casedate=${1-2019052018}
 numens=${2-40}
+wrkcase=${3-"test_runs"}
+
+wrkroot="/scratch/ywang/EPIC"
 
 caseHH=${casedate:8:2}
 
 rootdir="/oldscratch/ywang/EPIC/Program"
 
-wrkdir="/scratch/ywang/EPIC/test_runs/${casedate}"
+wrkdir="${wrkroot}/${wrkcase}/${casedate}"
 gdasdir="/scratch/ywang/EPIC/GDAS"
 
 for imn in $(seq 1 $numens); do

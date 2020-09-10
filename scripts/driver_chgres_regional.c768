@@ -1,6 +1,5 @@
 #!/bin/ksh
-#SBATCH -A smallqueue    # Allocation name (req'd if you have more than 1)
-#SBATCH -p workq        # Queue (partition) name
+#SBATCH -p skx-normal        # Queue (partition) name
 #SBATCH -J chgres_fv3
 #SBATCH -o log.out.ics_%j
 #SBATCH -e log.err.ics_%j
@@ -34,7 +33,8 @@ export ymd=`echo $CDATE | cut -c 1-8`
 
 export BASE_GSM=/oldscratch/ywang/EPIC/CAPS_code/FV3test/fv3sar
 export DATA=/oldscratch/ywang/EPIC/CAPS_code/FV3test/${CDATE}/tmp/wrk.chgres
-export APRUNC="srun -n 1"
+#export APRUNC="srun -n 1"
+export APRUNC="time "
 export INIDIR=/oldscratch/ywang/EPIC/GDAS/${CDATE}_mem001
 export HOMEgfs=${BASE_GSM}
 export FIXfv3=/oldscratch/ywang/EPIC/CAPS_code/FV3test/${CDATE}/fix/fix_fv3

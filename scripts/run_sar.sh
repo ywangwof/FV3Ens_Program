@@ -1,20 +1,26 @@
 #!/bin/bash
 
 if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
-  echo "$0 YYYYMMDDHH [NN] [test_run|test_mp|test_spp|test_mspp]"
+  echo "$0 YYYYMMDDHH [test_run|test_mp|test_spp|test_mspp] [NS] [NN]"
   exit
 fi
 
 casedate=${1-2019052018}
-numens=${2-40}
-wrkcase=${3-"test_runs"}
+wrkcase=${2-"test_runs"}
+numsta=${3-1}
+numens=${4-40}
+username="tg455890"
+maxjobs=25
 
-wrkroot="/scratch/ywang/EPIC"
+#wrkroot="/scratch/ywang/EPIC"           # Odin
+wrkroot="/scratch/00315/tg455890/EPIC"   # stampede
 
 caseHH=${casedate:8:2}
 eventymd=$(date -d "${casedate:0:8} ${caseHH}:00 1 hours ago" +%Y%m%d)
 
-rootdir="/oldscratch/ywang/EPIC/Program"
+#rootdir="/oldscratch/ywang/EPIC/Program"              # Odin
+rootdir="/work/00315/tg455890/stampede2/EPIC/Program"  # Stampede
+
 wrkdir="${wrkroot}/${wrkcase}/${casedate}"
 
 griddir="$wrkdir/grid_orog"
@@ -121,16 +127,39 @@ fn="$wrkdir/grid_orog/${CASE}_grid.tile7.nc"
 
 function ncattget {
   #ncks -m -M $1 | grep -E "^Global attribute [0-9]+: (CEN_LAT|CEN_LON|TRUELAT1|TRUELAT2|STAND_LON)" | cut -f 4,11 -d ' '
-  /scratch/software/Odin/python/anaconda2/bin/ncks -x -M $1 | grep -E "(plat|plon)"
+  #/scratch/software/Odin/python/anaconda2/bin/ncks -x -M $1 | grep -E "(plat|plon)"
+  /home1/apps/intel18/nco/4.9.3/bin/ncks -x -M $1 | grep -E "(plat|plon)"
 }
 
 domains=$(ncattget $fn)
 
+#IFS=$'\n' domelements=($domains)
+#for var in ${domelements[@]}; do
+#  IFS='= ' keyval=(${var##Global attribute *:})
+#  wrfkey=${keyval[0]%%,}
+#  val=${keyval[-1]}
+#
+#  case $wrfkey in
+#    plat)
+#      key="tlat"
+#      ;;
+#    plon)
+#      key="tlon"
+#      ;;
+#    *)
+#      key=${wrfkey}
+#      ;;
+#  esac
+#  declare "$key=$val"
+#  echo "$key -> $val"
+#done
 IFS=$'\n' domelements=($domains)
+#echo ${domelements[0]},${domelements[1]}
 for var in ${domelements[@]}; do
-  IFS='= ' keyval=(${var##Global attribute *:})
+  IFS='= ' keyval=(${var##*:})
+  #echo "keyval=${keyval[0]},${keyval[1]},${keyval[-1]}"
   wrfkey=${keyval[0]%%,}
-  val=${keyval[-1]}
+  val=${keyval[1]}
 
   case $wrfkey in
     plat)
@@ -158,7 +187,7 @@ echo "===================================="
 #-----------------------------------------------------------------------
 
 l=0
-for imn in $(seq 1 1 $numens); do
+for imn in $(seq $numsta 1 $numens); do
 
   ensmemid=$(printf "%03d" $imn)
   memdir="$wrkdir/mem_$ensmemid"
@@ -320,12 +349,17 @@ EOF
 
   jobscript="run_fv3_${casedate}.job"
 
-  sed -f sed_sarfv3 ${rootdir}/templates/run_fv3_on_Odin.job > $jobscript
+  sed -f sed_sarfv3 ${rootdir}/templates/run_fv3_on_Stampede.job > $jobscript
 
   echo -n "Run fv3sar for memeber $ensmemid .... "
   sbatch $jobscript
-  sleep 120
-
   rm -f sed_sarfv3
+
+  numjobs=$(squeue -u $username | wc -l)
+  while [[ $numjobs -gt $maxjobs ]]; do
+    sleep 10
+    numjobs=$(squeue -u $username | wc -l)
+  done
+
 done
 

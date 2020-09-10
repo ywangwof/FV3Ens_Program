@@ -1,0 +1,115 @@
+#!/bin/bash
+#SBATCH -p skx-normal
+#SBATCH -J fv3sar-MMMMMM
+#SBATCH -o log.out.fv3_%j
+#SBATCH -e log.err.fv3_%j
+#SBATCH -N NODESN                 # Total # of nodes
+#SBATCH -n NPEEEE                 # Total # of mpi tasks
+#SBATCH -t 02:10:00               # Run time (hh:mm:ss)
+
+# should be defined in the calling script
+WRKDIR=TTTDDD/mem_MMMMMM
+
+time1=$(date '+%s')
+echo "Job Started: $(date). Job Id:  $SLURM_JOBID"
+echo " "
+
+ulimit -s unlimited
+#ulimit -a
+
+#export PSM_TID_SENDSESSIONS_MAX=16384
+##export OMP_STACKSIZE=1024m
+#export KMP_AFFINITY=scatter
+
+##
+## load programming environment
+## this typically includes compiler, MPI and job scheduler
+##
+module load intel/18.0.2
+module load impi/18.0.2
+module load netcdf/4.6.2
+module load hdf5/1.10.4
+module load pnetcdf/1.8.1
+module unload xalt
+export NETCDF=/opt/apps/intel18/netcdf/4.6.2/x86_64
+
+##
+## use pre-compiled EMSF library for above compiler / MPI combination
+##
+# DH* todo - shared directory
+set ESMF_DIR /home1/01479/tsupine/esmf
+export ESMF_DIR=${ESMF_DIR}
+export ESMF_INC=${ESMF_DIR}/include
+export ESMF_BIN=${ESMF_DIR}/bin/binO/Linux.intel.64.intelmpi.default
+export ESMF_LIB=${ESMF_DIR}/lib/libO/Linux.intel.64.intelmpi.default
+export ESMF_MOD=${ESMF_DIR}/mod/modO/Linux.intel.64.intelmpi.default
+export ESMFMKFILE=${ESMF_DIR}/lib/libO/Linux.intel.64.intelmpi.default/esmf.mk
+export PATH=${ESMF_DIR}/bin/binO/Linux.intel.64.intelmpi.default:${PATH}
+export LD_LIBRARY_PATH=${ESMF_DIR}/lib/libO/Linux.intel.64.intelmpi.default:${LD_LIBRARY_PATH}
+
+##
+## NCEP libraries (download and build manually for the time being; https://github.com/climbfuji/NCEPlibs)
+##
+# DH* todo - shared directory
+export NCEPLIBS_DIR=/home1/01479/tsupine/fv3-sar-devel/NCEPlibs
+export NCEPLIBS_DIR=${NCEPLIBS_DIR}
+export NEMSIO_INC=${NCEPLIBS_DIR}/include
+export NEMSIO_LIB=${NCEPLIBS_DIR}/lib/libnemsio_d.a
+export BACIO_LIB4=${NCEPLIBS_DIR}/lib/libbacio_4.a
+export SP_LIBd=${NCEPLIBS_DIR}/lib/libsp_v2.0.2_d.a
+export W3EMC_LIBd=${NCEPLIBS_DIR}/lib/libw3emc_d.a
+export W3NCO_LIBd=${NCEPLIBS_DIR}/lib/libw3nco_d.a
+
+##
+## Set compiler environment variables for CCPP
+##
+export CC=mpicc
+export CXX=mpicxx
+export FC=mpif90
+export F77=mpif77
+export F90=mpif90
+
+
+cd $WRKDIR
+
+#-----------------------------------------------------------------------
+# run the FV3 job
+#-----------------------------------------------------------------------
+#
+#ulimit -a
+
+set -x
+
+export MPI_TYPE_DEPTH=20
+export OMP_STACKSIZE=512M
+export OMP_NUM_THREADS=2
+export ESMF_RUNTIME_COMPLIANCECHECK=OFF:depth=4
+
+ibrun ./fv3_gfs.x
+
+if [[ $(ls dynf000:0?:??.nc | wc -l) -eq 1 ]]; then
+  orgfile=$(ls dynf000:0?:??.nc)
+  ln -sf $orgfile dynf000:00:00.nc
+fi
+
+if [[ $(ls phyf000:0?:??.nc | wc -l) -eq 1 ]]; then
+  orgfile=$(ls phyf000:0?:??.nc)
+  ln -sf $orgfile phyf000:00:00.nc
+fi
+
+touch done.fv3
+
+time2=$(date '+%s')
+
+let diff=time2-time1
+let hour=diff/3600
+let diff=diff%3600
+let min=diff/60
+let sec=diff%60
+
+echo -n "Job   Ended: $(date). "
+printf 'Job run time:  %02d:%02d:%02d' $hour $min $sec
+echo " "
+
+exit
+

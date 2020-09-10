@@ -1,29 +1,36 @@
 #!/bin/bash
 
 if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
-  echo "$0 YYYYMMDDHH [NN] [test_runs|test_mp|test_spp|test_mspp]"
+  echo "$0 YYYYMMDDHH [test_runs|test_mp|test_spp|test_mspp] [NS] [NN]"
   exit
 fi
 
 casedate=${1-2019052018}
-numens=${2-40}
-wrkcase=${3-"test_runs"}
+wrkcase=${2-"test_runs"}
+numsta=${3-1}
+numens=${4-40}
+username="tg455890"
+maxjobs=25
 
-wrkroot="/scratch/ywang/EPIC"
+#wrkroot="/scratch/ywang/EPIC"           # Odin
+wrkroot="/scratch/00315/tg455890/EPIC"   # stampede
 
 caseHH=${casedate:8:2}
 caseDT=$(date -d "${casedate:0:8} ${caseHH}:00 1 hours ago" +%Y%m%d)
 
-rootdir="/oldscratch/ywang/EPIC/Program"
+#rootdir="/oldscratch/ywang/EPIC/Program"              # Odin
+rootdir="/work/00315/tg455890/stampede2/EPIC/Program"  # Stampede
 
 wrkdir="${wrkroot}/${wrkcase}/${casedate}"
-gdasdir="/scratch/ywang/EPIC/GDAS"
+#gdasdir="/scratch/ywang/EPIC/GDAS"                    # Odin
+gdasdir="/work/00315/tg455890/stampede2/EPIC/GDAS"     # Stampede
 
 #
 # Link grid and orog files
 #
 if [[ ! -e $wrkdir/grid_orog ]]; then
-  griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl_${caseDT}"
+  #griddir="/scratch/ywang/comFV3SAR/test_runs/caps_cntl_${caseDT}"  # Odin
+  griddir="/work/00315/tg455890/stampede2/EPIC/test_grids/caps_cntl_${caseDT}"   # Stampede
 
   mkdir -p $wrkdir/grid_orog
 
@@ -44,7 +51,7 @@ if [[ ! -e $wrkdir/grid_orog ]]; then
 #  CCASE=${fm%%_grid.tile7.halo3.nc}
 fi
 
-for imn in $(seq 1 $numens); do
+for imn in $(seq $numsta 1 $numens); do
   ensmemid=$(printf %3.3i $imn)
   memdir="$wrkdir/mem_$ensmemid"
   #
@@ -70,9 +77,13 @@ EOF
 
   sbatch run_chgres_ic.ksh
 
-  if [[ imn -eq 1 ]]; then
-    sleep 30
-  fi
   rm -f sed_chgres_ic
+
+  #sleep $((imn*10))
+  numjobs=$(squeue -u $username | wc -l)
+  while [[ $numjobs -gt $maxjobs ]]; do
+    sleep 10
+    numjobs=$(squeue -u $username | wc -l)
+  done
 done
 

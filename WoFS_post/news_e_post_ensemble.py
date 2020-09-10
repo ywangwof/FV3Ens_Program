@@ -60,6 +60,7 @@ for n in range(0, len(member_dirs)):
       if (file[0:7] == 'FV3_ENS'):                               #assumes filename format of: "wrfout_d02_yyyy-mm-dd_hh:mm:ss
          member_files.append(file)
    member_files.sort()
+   #print n,member_files
    files.append(os.path.join(temp_dir, member_files[t]))
 
 files.sort()  #should have sorted directory paths to each ensemble file to be processed

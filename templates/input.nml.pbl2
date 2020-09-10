@@ -172,6 +172,9 @@
        iau_delthrs    = 6
        iaufhrs        = 30
        iau_inc_files  = ''
+       do_sppt        = .F.
+       do_shum        = .F.
+       do_skeb        = .F.
 /
 
   &interpolator_nml

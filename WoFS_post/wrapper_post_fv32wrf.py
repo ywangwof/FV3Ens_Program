@@ -15,7 +15,7 @@ from news_e_post_cbook import *
 
 from multiprocessing import Pool
 
-sys.path.append("/scratch/software/Anaconda2/bin")
+#sys.path.append("/scratch/software/Anaconda2/bin")
 
 ###################################################################################################
 # run_script is a function that runs a system command
@@ -49,22 +49,38 @@ pool = Pool(processes=(24))              # set up a queue to run
 
 ######### Check to see if all forecasts from all members are present: #########
 #print 'SOMETHING!!!!!'
-ne = 40
+#ne = 40
+#member_dirs = []
+#
+#while (len(member_dirs) < ne):         #wait for all members to be running
+#   member_dirs = []
+#   member_dirs_temp = os.listdir(fcst_dir)
+#   print member_dirs_temp
+#   for d, dir in enumerate(member_dirs_temp):
+#      if (dir[0:4] == 'mem_'):
+#         member_dirs.append(dir)
+#   print 'NUMBER OF MEMBER DIRS: ', len(member_dirs)
+#   if (len(member_dirs) == ne):
+#      print 'found all member dirs ... '
+#      time.sleep(1)
+#   else:
+#      time.sleep(10)
+members=(9,) #range(1,41)
+ne = len(members)
 member_dirs = []
 
-while (len(member_dirs) < ne):         #wait for all members to be running
-   member_dirs = []
-   member_dirs_temp = os.listdir(fcst_dir)
-   print member_dirs_temp
-   for d, dir in enumerate(member_dirs_temp):
-      if (dir[0:4] == 'mem_'):
-         member_dirs.append(dir)
-   print 'NUMBER OF MEMBER DIRS: ', len(member_dirs)
-   if (len(member_dirs) == ne):
-      print 'found all member dirs ... '
-      time.sleep(1)
-   else:
-      time.sleep(10)
+#while (len(member_dirs) < ne):         #wait for all members to be running
+for memid in members:
+    mempath = os.path.join(fcst_dir,'mem_%03d'%memid)
+    if os.path.lexists(mempath):
+        member_dirs.append(mempath)
+
+print 'NUMBER OF MEMBER DIRS: ', len(member_dirs)
+if (len(member_dirs) == ne):
+   print 'found all member dirs ... '
+   time.sleep(1)
+else:
+   sys.exit(0)
 
 member_dirs.sort()
 

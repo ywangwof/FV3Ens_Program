@@ -71,7 +71,7 @@ foreach dir ($times)
       if ( ! -e $flagfile ) then
          touch $flagfile 
 #         sleep 240
-         /home/kimberly.hoogewind/miniconda3/envs/py3/bin/python wofs_sounding_plotter5.py $tempsumdir $tempnt $tempimagedir
+         /home/kimberly.hoogewind/miniconda3/envs/py3/bin/python py2s_sounding_plotter5.py $tempsumdir $tempnt $tempimagedir
 #         /home/kimberly.hoogewind/miniconda3/envs/py3/bin/python wrapper_post_sounding.py -d $fcstdir -o $tempsumdir -e $tempnt 
 #         exit(0)
       endif

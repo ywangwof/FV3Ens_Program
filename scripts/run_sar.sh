@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
-  echo "$0 YYYYMMDDHH [NN]"
+  echo "$0 YYYYMMDDHH [NN] [test_run|test_mp|test_spp|test_mspp]"
   exit
 fi
 
@@ -35,9 +35,9 @@ ddd=`echo $ymdh |cut -c 7-8`
 hhh=`echo $ymdh |cut -c 9-10`
 
 CASE="C768"
-if [[ "$wrkcase" =~ "test_runs" ]]; then
+if [[ "$wrkcase" =~ "test_runs" || "$wrkcase" =~ "test_spp" ]]; then
   suitelen=1
-elif [[ "$wrkcase" =~ "test_mp" ]]; then
+elif [[ "$wrkcase" =~ "test_mp" || "$wrkcase" =~ "test_mspp" ]]; then
   suitelen=6           # number of suites to be used
 else
   echo "Unknown wrkcase = \"$wrkcase\"."
@@ -47,7 +47,7 @@ fi
 SUITES=("cntl" "lsm1" "sfcl1" "pbl1" "pbl2" "mp1")
 
 hout_min=10                # minutes output
-hout_hour=$(python <<<"print ${hout_min}/60.")
+hout_hour=$(python3 <<<"print(${hout_min}/60.)")
 hout_second=$((${hout_min}*60))
 
 #-----------------------------------------------------------------------
@@ -81,7 +81,7 @@ layout_y="10"
 nquilt="28"
 io_layout="1,1"
 
-if [[ "quilting" =~ ".true." ]]; then
+if [[ "${quilting}" =~ ".true." ]]; then
   npes=$((layout_x * layout_y+nquilt))
 else
   npes=$((layout_x * layout_y))
@@ -165,7 +165,11 @@ for imn in $(seq 1 1 $numens); do
   suite=${SUITES[$l]}
   l=$(( (l+1)%suitelen ))
 
-  EXEPRO="${rootdir}/exec/fv3_32bit_${suite}.exe"
+  if [[ "$wrkcase" =~ "spp" ]]; then
+    EXEPRO="${rootdir}/exec/fv3_32bit_${suite}_spp.exe"
+  else
+    EXEPRO="${rootdir}/exec/fv3_32bit_${suite}.exe"
+  fi
 
   cd $memdir
 
@@ -176,14 +180,60 @@ for imn in $(seq 1 1 $numens); do
   mkdir -p RESTART
   ln -sf $EXEPRO fv3_gfs.x
 
-  cp $templates/diag_table .
   cp $templates/data_table .
   if [[ "$suite" == "mp1" ]]; then
     cp $templates/field_table.${suite} field_table
   else
     cp $templates/field_table .
   fi
+
   cp $templates/input.nml.$suite input.nml
+  if [[ "$wrkcase" =~ "spp" ]]; then
+    echo $wrkcase
+    #cp $templates/input.nml.spp.v0  input.nml
+
+    sed -i "/do_sppt/s/.F./.T./" input.nml
+    sed -i "/do_shum/s/.F./.T./" input.nml
+    sed -i "/do_skeb/s/.F./.T./" input.nml
+
+    cat > spp.v0 <<SPPT
+     new_lscale=.true.,
+     sppt=1.0,
+     sppt_tau = 2.16E4,
+     sppt_lscale=150.E3,
+     USE_ZMTNBLCK=.FALSE.,
+     SPPT_LOGIT=.TRUE.,
+     SPPT_SFCLIMIT=.FALSE.,
+     ISEED_SPPT=$((casedate*1000 + imn*10 + 3)),
+     SHUM=0.006,
+     SHUM_TAU=21600,
+     SHUM_LSCALE=150.E3,
+     ISEED_SHUM=$((casedate*1000 + imn*10 + 2)),
+     SKEBNORM=1,
+     SKEB=0.5,
+     SKEB_VDOF=10,
+     SKEB_TAU=21600.,
+     SKEB_LSCALE=150.E3,
+     ISEED_SKEB=$((casedate*1000 + imn*10 + 1)),
+     skebint=3600,
+     spptint=3600,
+     shumint=3600,
+SPPT
+
+    sed -i "/&nam_stochy/r spp.v0" input.nml
+
+    #iseed_skeb=$((casedate*1000 + imn*10 + 1))
+    #iseed_shum=$((casedate*1000 + imn*10 + 2))
+    #iseed_sppt=$((casedate*1000 + imn*10 + 3))
+    #sed -i "/ISEED_SKEB/s/[0-9]\+/$iseed_skeb/" input.nml
+    #sed -i "/ISEED_SHUM/s/[0-9]\+/$iseed_shum/" input.nml
+    #sed -i "/ISEED_SPPT/s/[0-9]\+/$iseed_sppt/" input.nml
+
+    cp $templates/diag_table.spp diag_table
+  else
+    #cp $templates/input.nml.$suite input.nml
+    cp $templates/diag_table .
+  fi
   cp $templates/model_configure_${eventymd} model_configure
   cp $templates/nems.configure .
   cp $templates/CCN_ACTIVATE.BIN .
@@ -274,6 +324,7 @@ EOF
 
   echo -n "Run fv3sar for memeber $ensmemid .... "
   sbatch $jobscript
+  sleep 120
 
   rm -f sed_sarfv3
 done

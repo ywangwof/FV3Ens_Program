@@ -67,6 +67,8 @@ for n in range(0, len(member_dirs)):
          member_files.append(file)
    member_files.sort()
 
+   print n, t, temp_dir,len(member_files)
+   #print len(member_files),member_files
    files.append(os.path.join(temp_dir, member_files[t]))
 
 files.sort()  #should have sorted directory paths to each ensemble file to be processed

@@ -40,7 +40,7 @@ def download_srpt(wrkdir,filename):
         tCHUNK = 512*1024
         downstr = ' '
         try :
-          req = urllib2.urlopen(url)
+          req = urllib2.urlopen(url, None, 20)
           with open(output,'wb') as fp :
             while True :
               fchunk = req.read(tCHUNK)
@@ -60,7 +60,8 @@ def download_srpt(wrkdir,filename):
 
     except Exception,x:
         logging.error('Error:download SPC storm report file: %s' % x)
-        sys.exit(1)
+        raise x
+        #sys.exit(1)
 
 ########################################################################
 
@@ -123,7 +124,11 @@ def plot_storms(mymap,eventdate,wrkdir):
 
   wrkrptfile = os.path.join(wrkdir,srptfile)
   if not os.path.lexists(wrkrptfile):
-      download_srpt(wrkdir,srptfile)
+      try:
+        download_srpt(wrkdir,srptfile)
+      except:
+        logging.error('ERROR: no storm reports will be plotted.')
+        return
 
   #srpts = decode_srptfile(wrkrptfile,2100,10200)
   srpts = decode_srptfile(wrkrptfile)

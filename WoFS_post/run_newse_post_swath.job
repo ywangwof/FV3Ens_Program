@@ -1,8 +1,8 @@
 #!/bin/csh
 #==================================================================
-#SBATCH -J post_swt
-#SBATCH -o /oldscratch/larissa.reames/fv3sar_post/logs/post_swt.out
-#SBATCH -e /oldscratch/larissa.reames/fv3sar_post/logs/post_swt.err
+#SBATCH -J post_swt_MMDD
+#SBATCH -o WRKDIR/post_swt_%j.out
+#SBATCH -e WRKDIR/post_swt_%j.err
 #SBATCH -A smallqueue
 #SBATCH -p workq
 #SBATCH --ntasks-per-node=1
@@ -22,21 +22,32 @@ setenv MALLOC_MMAP_MAX 0
 setenv MALLOC_TRIM_THRESHOLD 536870912
 #set PYTHON = /scratch/software/Odin/python/anaconda2/bin/python
 #setenv PATH /scratch/software/Odin/python/anaconda2/bin:$PATH
-set PYTHON = /home/louis.wicker/anaconda2/envs/wof/bin/python
-setenv PATH /home/louis.wicker/anaconda2/envs/wof/bin:$PATH
+source /scratch/software/Odin/python/anaconda2/etc/profile.d/conda.csh
+conda activate py2
+set PYTHON = /home/yunheng.wang/.conda/envs/py2/bin/python
 
-# User defined variables:
-if ($#argv < 1) then
-  echo "usage $0 YYYYMMDDHH"
-  exit
-endif
+## User defined variables:
+#if ($#argv != 2) then
+#  echo "usage $0 YYYYMMDDHH test_runs|test_mp"
+#  exit
+#endif
 
-set datestr = $1
+set datestr = "YYYYMMDDHH"
+set wrkcase = "WRKCASE"
+
 set fcstdate = `echo $datestr | awk '{print substr($0,1,8)}'`
 set fcsthour = `echo $datestr | awk '{print substr($0,9,2)}'`
 #set date = 20190520
 
-set fcst_base = /scratch/ywang/EPIC/test_runs
+set fcst_base = "/scratch/ywang/EPIC/$wrkcase"
+if ($wrkcase =~ "test_runs" ) then
+  echo "$fcst_base"
+else if ($wrkcase =~ "test_mp" ) then
+  echo "$fcst_base"
+else
+  echo "Unknown wrkcase = $wrkcase."
+  exit 1
+endif
 
 set times = ("$fcsthour")
 set nt = (37)

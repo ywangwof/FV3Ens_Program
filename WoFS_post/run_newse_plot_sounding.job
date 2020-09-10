@@ -87,7 +87,7 @@ foreach dir ($times)
    if ( -d $fcstdir ) then
       if ( ! -e $flagfile ) then
           
-         /home/kimberly.hoogewind/miniconda3/envs/py3/bin/python wofs_sounding_plotter.py $tempsumdir $tempnt $tempimagedir
+         /home/kimberly.hoogewind/miniconda3/envs/py3/bin/python py2s_sounding_plotter.py $tempsumdir $tempnt $tempimagedir
          touch $flagfile
 #         exit(0)
       endif

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
-  echo "$0 YYYYMMDDHH [NN]"
+  echo "$0 YYYYMMDDHH [NN] [test_runs|test_mp|test_spp|test_mspp]"
   exit
 fi
 
@@ -70,6 +70,9 @@ EOF
 
   sbatch run_chgres_ic.ksh
 
+  if [[ imn -eq 1 ]]; then
+    sleep 30
+  fi
   rm -f sed_chgres_ic
 done
 

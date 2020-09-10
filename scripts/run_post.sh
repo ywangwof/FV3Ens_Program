@@ -191,7 +191,9 @@ EOF
 #-----------------------------------------------------------------------
     jobscript=run_upp_$fhr.job
     cp ${template_job} ${jobscript}
-    sed -i -e "s#WWWDDD#${FHR_DIR}#;s#NNNNNN#${nodes1}#;s#MMMMMM#${memid}#;s#PPPPPP#${platppn}#g;s#TTTTTT#${numthread}#g;s#EEEEEE#${FV3SARDIR}#;s#DDDDDD#${CDATE}#;s#CCCHHH#${CHH}#;s#HHHHHH#${mn}#;" ${jobscript}
+    #sed -i -e "s#WWWDDD#${FHR_DIR}#;s#NNNNNN#${nodes1}#;s#MMMMMM#${memid}#;s#PPPPPP#${platppn}#g;s#TTTTTT#${numthread}#g;s#EEEEEE#${FV3SARDIR}#;s#DDDDDD#${CDATE}#;s#CCCHHH#${CHH}#;s#HHHHHH#${mn}#;" ${jobscript}
+    sed -i -e "s#WWWDDD#${FHR_DIR}#;s#NNNNNN#${nodes1}#;s#MMMMMM#${memid}#;s#PPPPPP#${platppn}#g;s#TTTTTT#${numthread}#g;s#EEEEEE#/oldscratch/ywang/EPIC/EMC_post#;s#DDDDDD#${CDATE}#;s#CCCHHH#${CHH}#;s#HHHHHH#${mn}#;" ${jobscript}
+
 
     echo -n "Run UPP for memeber $memid at forecast $mn minutes .... "
     sbatch $jobscript

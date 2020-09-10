@@ -542,6 +542,7 @@ else:
 
 init_label = 'Init: ' + year + '-' + month + '-' + day + ', ' + init_hour + init_min + ' UTC'
 valid_label = 'Valid: ' + year + '-' + month + '-' + valid_day + ', ' + valid_hour + valid_min + ' UTC'
+tintvmin = 10
 
 ######################### Set domain: ####################################
 
@@ -782,23 +783,23 @@ corf_ds_q_v = quiv_corf_ds_v
 
 ######################## Environment Plots: #####################
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, temp_plot, mean_tf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, temp_plot, mean_tf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, td_plot, mean_tdf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, td_plot, mean_tdf_2[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, mslp_plot, mean_mslp[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, mslp_plot, mean_mslp[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, temp850_plot, mean_tf_850[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850p, q_v_850p, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, temp850_plot, mean_tf_850[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850p, q_v_850p, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, td850_plot, mean_tdf_850[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850p, q_v_850p, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, td850_plot, mean_tdf_850[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850p, q_v_850p, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, temp700_plot, mean_tf_700[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_700p, q_v_700p, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, temp700_plot, mean_tf_700[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_700p, q_v_700p, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, td700_plot, mean_tdf_700[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_700p, q_v_700p, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, td700_plot, mean_tdf_700[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_700p, q_v_700p, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, the_plot, mean_the_ml[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, the_plot, mean_the_ml[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u, q_v, 500, tintvmin, 0, spec='False', quiv='True')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 #cape_plot.name = 'mucape'
 #cape_plot.var1_title = 'Ens. Mean MUCAPE (J Kg$^{-1}$)'
@@ -815,95 +816,95 @@ env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape[:,:], pmm_dz[:,:], 
 #cape_plot.var1_levels = cape_0to3_levels
 #env_plot(map, fig, ax1, ax2, ax3, x, y, cape_plot, mean_cape_0to3[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, cin_plot, mean_cin[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, cin_plot, mean_cin[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, stp_plot, mean_stp[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, stp_plot, mean_stp[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, swdown_plot, mean_swdown[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, swdown_plot, mean_swdown[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
-env_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, mean_comp_dz[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, mean_comp_dz[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 srh_plot.name = 'srh0to1'
 srh_plot.var1_title = 'Ens. Mean 0 - 1 km Storm Relative Helicity (m$^{2}$ s$^{-2}$)'
-env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 srh_plot.name = 'srh0to3'
 srh_plot.var1_title = 'Ens. Mean 0 - 3 km Storm Relative Helicity (m$^{2}$ s$^{-2}$)'
-env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to3[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, srh_plot, mean_srh_0to3[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 mfc_plot.name = 'pbl_mfc'
 mfc_plot.var1_title = 'Ens. Mean Lowest 75 hPa Max Moisture Convergence (g Kg$^{-1}$ s$^{-1}$)'
-env_plot(map, fig, ax1, ax2, ax3, x, y, mfc_plot, mean_pbl_mfc[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_bl, q_v_bl, 500, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, mfc_plot, mean_pbl_mfc[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_bl, q_v_bl, 500, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'ws_500'
 ws_plot.var1_title = 'Ens. Mean 500 m Wind Speed (kts)'
 ws_plot.var1_levels = ws_levels_low
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_500[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_500, q_v_500, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_500[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_500, q_v_500, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'ws_850hpa'
 ws_plot.var1_title = 'Ens. Mean 850 hPa Wind Speed (kts)'
 ws_plot.var1_levels = ws_levels_low
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_850p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850p, q_v_850p, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_850p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850p, q_v_850p, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'ws_700hpa'
 ws_plot.var1_title = 'Ens. Mean 700 hPa Wind Speed (kts)'
 ws_plot.var1_levels = ws_levels_low
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_700p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_700p, q_v_700p, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_700p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_700p, q_v_700p, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'ws_500hpa'
 ws_plot.var1_title = 'Ens. Mean 500 hPa Wind Speed (kts)'
 ws_plot.var1_levels = ws_levels_500
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_500p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_500p, q_v_500p, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_500p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_500p, q_v_500p, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'ws_850_300_hpa'
 ws_plot.var1_title = 'Ens. Mean 850-300 hPa Mean Wind Speed (kts)'
 ws_plot.var1_levels = ws_levels_low
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_850_300p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850_300p, q_v_850_300p, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_ws_850_300p[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, q_u_850_300p, q_v_850_300p, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'shear0to6'
 ws_plot.var1_title = 'Ens. Mean 0 - 6 km Shear (kts)'
 ws_plot.var1_levels = ws_levels_high
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to6[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to6_q_u, shear0to6_q_v, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to6[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to6_q_u, shear0to6_q_v, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'shear0to1'
 ws_plot.var1_title = 'Ens. Mean 0 - 1 km Shear (kts)'
 ws_plot.var1_levels = ws_levels_low
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to1_q_u, shear0to1_q_v, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_shear_0to1[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, shear0to1_q_u, shear0to1_q_v, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'bunk'
 ws_plot.var1_title = 'Ens. Mean Bunkers Storm Motion (kts)'
 ws_plot.var1_levels = ws_levels_low
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_bunk[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, bunk_q_u, bunk_q_v, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_bunk[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, bunk_q_u, bunk_q_v, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'corf_us'
 ws_plot.var1_title = 'Ens. Mean Corfidi Upshear Motion (kts)'
 ws_plot.var1_levels = corf_levels
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_corf_us[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, corf_us_q_u, corf_us_q_v, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_corf_us[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, corf_us_q_u, corf_us_q_v, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ws_plot.name = 'corf_ds'
 ws_plot.var1_title = 'Ens. Mean Corfidi Downshear Motion (kts)'
 ws_plot.var1_levels = ws_levels_high
-env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_corf_ds[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, corf_ds_q_u, corf_ds_q_v, 1000, 5, 0, spec='False', quiv='True')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ws_plot, mean_corf_ds[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, corf_ds_q_u, corf_ds_q_v, 1000, tintvmin, 0, spec='False', quiv='True')
 
 ul_dvg_plot.name = 'ul_dvg'
 ul_dvg_plot_var1_title = 'Ens. Mean 400-250 hPa Divergence (s$^{-1}$)'
 ul_dvg_plot_var1_levels = ul_dvg_levels
-env_plot(map, fig, ax1, ax2, ax3, x, y, ul_dvg_plot, mean_ul_dvg[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, ul_dvg_plot, mean_ul_dvg[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 cwp_plot.name = 'cwp'
 cwp_plot.var1_title = 'Ens. Mean Cloud Water Path (kg m$^{-2}$)'
-sat_plot(map, fig, ax1, ax2, ax3, x, y, cwp_plot, mean_cwp[:,:], mean_cwp[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+sat_plot(map, fig, ax1, ax2, ax3, x, y, cwp_plot, mean_cwp[:,:], mean_cwp[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 pw_plot.name = 'pw'
 pw_plot.var1_title = 'Ens. Mean Precipitable Water (in)'
-env_plot(map, fig, ax1, ax2, ax3, x, y, pw_plot, mean_pwat[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, pw_plot, mean_pwat[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 ctp_plot.name = 'ctp'
 ctp_plot.var1_title = 'Ens. Mean Cloud Top Pressure (hPa)'
-sat_plot(map, fig, ax1, ax2, ax3, x, y, ctp_plot, mean_ctp[:,:], mean_ctp[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+sat_plot(map, fig, ax1, ax2, ax3, x, y, ctp_plot, mean_ctp[:,:], mean_ctp[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 
 omega_plot.name = 'omega'
 omega_plot.var1_title = 'Ens. Mean 700 hPa Omega (Pa s$^{-1}$)'
 omega_plot.var1_levels = omega_levels
-env_plot(map, fig, ax1, ax2, ax3, x, y, omega_plot, mean_omega[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+env_plot(map, fig, ax1, ax2, ax3, x, y, omega_plot, mean_omega[:,:], pmm_dz[:,:], t, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 

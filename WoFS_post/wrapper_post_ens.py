@@ -94,6 +94,7 @@ while (current_t < fcst_nt-1):
    if (process == 1):
       if (current_t >= 3):
          cmd = "python news_e_post_ensemble.py -d %s -o %s -t %d " % (fcst_dir, outdir, (current_t-3))
+         #print cmd
          pool.apply_async(run_script, (cmd,))
       current_t = current_t + 1
       iteration = 0

@@ -221,6 +221,7 @@ xx, yy = map.makegrid(xlat.shape[1], xlat.shape[0], returnxy=True)[2:4]   #equid
 ##########################################################################################################
 
 print 'plot part'
+tintvmin = 10
 
 ######################## Reflectivity Plots: #####################
 #mems = [1, 11, 12, 13, 14, 15, 16, 17, 18, 2, 3, 4, 5, 6, 7, 8, 9, 10]
@@ -234,5 +235,5 @@ for n in  range(0, uh_2to5_convolve.shape[0]): #[1, 10, 11, 12, 13, 14, 15, 16, 
    dz_plot.name = 'member_' + member
    dz_plot.var1_title = 'Member %s Composite Reflectivity (dBZ)' % member
    dz_plot.var2_title = 'Member %s 2-5 km Updraft Helicity (m$^{2}$ s$^{-2}$)' % member
-   mem_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, comp_dz[n,:,:], uh_2to5_convolve[n,:,:], t, init_label, valid_label, domain, outdir, '', '', '', 5, 0, spec='False', quiv='False')
+   mem_plot(map, fig, ax1, ax2, ax3, x, y, dz_plot, comp_dz[n,:,:], uh_2to5_convolve[n,:,:], t-1, init_label, valid_label, domain, outdir, '', '', '', tintvmin, 0, spec='False', quiv='False')
 

@@ -1,6 +1,6 @@
 #!/bin/sh -l
 
-FV3SARDIR=${FV3SARDIR-/oldscratch/ywang/EPIC/Program}  #"/lfs3/projects/hpc-wof1/ywang/regional_fv3/fv3sar.mine"
+FV3SARDIR=${FV3SARDIR-/oldscratch/ywang/EPIC/program.git}  #"/lfs3/projects/hpc-wof1/ywang/regional_fv3/fv3sar.mine"
 
 #-----------------------------------------------------------------------
 #
@@ -21,6 +21,9 @@ case $hostname in
     ;;
   fe*)
     template_job="${FV3SARDIR}/templates/run_upp_on_Jet.job"
+    ;;
+  *stampede2*)
+    template_job="${FV3SARDIR}/templates/run_upp_on_Stampede.job"
     ;;
   *)
     echo "Unsupported machine: $hostname."

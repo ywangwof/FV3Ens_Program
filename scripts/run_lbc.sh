@@ -1,24 +1,27 @@
 #!/bin/bash
 
 if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
-  echo "$0 YYYYMMDDHH [NN] [test_runs|test_mp|test_spp|test_mspp]"
+  echo "$0 YYYYMMDDHH [test_runs|test_mp|test_spp|test_mspp] [NS] [NN]"
   exit
 fi
 
 casedate=${1-2019052018}
-numens=${2-40}
-wrkcase=${3-"test_runs"}
+wrkcase=${2-"test_runs"}
+numsta=${3-1}
+numens=${4-40}
+username="yunheng.wang"
+maxjobs=40
 
 wrkroot="/scratch/ywang/EPIC"
 
 caseHH=${casedate:8:2}
 
-rootdir="/oldscratch/ywang/EPIC/Program"
+rootdir="/oldscratch/ywang/EPIC/program.git"
 
 wrkdir="${wrkroot}/${wrkcase}/${casedate}"
 gdasdir="/scratch/ywang/EPIC/GDAS"
 
-for imn in $(seq 1 $numens); do
+for imn in $(seq $numsta 1 $numens); do
   ensmemid=$(printf %3.3i $imn)
   memdir="$wrkdir/mem_$ensmemid"
   #
@@ -46,5 +49,12 @@ EOF
   ./run_chgres_lbc.sh
 
   rm -f sed_chgres_lbc
+
+  #sleep $((imn*10))
+  numjobs=$(squeue -u $username | wc -l)
+  while [[ $numjobs -gt $maxjobs ]]; do
+    sleep 10
+    numjobs=$(squeue -u $username | wc -l)
+  done
 done
 

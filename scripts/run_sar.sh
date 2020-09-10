@@ -1,20 +1,23 @@
 #!/bin/bash
 
 if [[ ! $1 =~ ^[0-9]{10}$ ]]; then
-  echo "$0 YYYYMMDDHH [NN] [test_run|test_mp|test_spp|test_mspp]"
+  echo "$0 YYYYMMDDHH [test_run|test_mp|test_spp|test_mspp] [NS] [NN]"
   exit
 fi
 
 casedate=${1-2019052018}
-numens=${2-40}
-wrkcase=${3-"test_runs"}
+wrkcase=${2-"test_runs"}
+numsta=${3-1}
+numens=${4-40}
+username="yunheng.wang"
+maxjobs=20
 
 wrkroot="/scratch/ywang/EPIC"
 
 caseHH=${casedate:8:2}
 eventymd=$(date -d "${casedate:0:8} ${caseHH}:00 1 hours ago" +%Y%m%d)
 
-rootdir="/oldscratch/ywang/EPIC/Program"
+rootdir="/oldscratch/ywang/EPIC/program.git"
 wrkdir="${wrkroot}/${wrkcase}/${casedate}"
 
 griddir="$wrkdir/grid_orog"
@@ -127,6 +130,7 @@ function ncattget {
 domains=$(ncattget $fn)
 
 IFS=$'\n' domelements=($domains)
+#echo ${domelements[0]},${domelements[1]}
 for var in ${domelements[@]}; do
   IFS='= ' keyval=(${var##Global attribute *:})
   wrfkey=${keyval[0]%%,}
@@ -158,7 +162,7 @@ echo "===================================="
 #-----------------------------------------------------------------------
 
 l=0
-for imn in $(seq 1 1 $numens); do
+for imn in $(seq $numsta 1 $numens); do
 
   ensmemid=$(printf "%03d" $imn)
   memdir="$wrkdir/mem_$ensmemid"
@@ -324,8 +328,13 @@ EOF
 
   echo -n "Run fv3sar for memeber $ensmemid .... "
   sbatch $jobscript
-  sleep 120
-
   rm -f sed_sarfv3
+
+  numjobs=$(squeue -u $username | wc -l)
+  while [[ $numjobs -gt $maxjobs ]]; do
+    sleep 10
+    numjobs=$(squeue -u $username | wc -l)
+  done
+
 done
 
